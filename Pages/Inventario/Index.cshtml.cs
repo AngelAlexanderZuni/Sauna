@@ -332,7 +332,6 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
             }
         }
 
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostToggleActivoAsync(int id)
         {
             try
@@ -353,7 +352,6 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
             }
         }
 
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnGetToggleActivoAsync(int id)
         {
             try
@@ -498,7 +496,6 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
             }
         }
 
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnGetFiltrarMovimientosAsync(string? producto, DateTime? desde, DateTime? hasta)
         {
             try
@@ -544,37 +541,34 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
 
         #region Gestión de Movimientos
 
-        [IgnoreAntiforgeryToken]
-public async Task<IActionResult> OnPostAjustarStockAsync(
-    int id, 
-    int cantidad, 
-    string tipo,
-    decimal? costoUnitario = null,
-    string? observacion = null,
-    DateTime? fecha = null)
-{
-    try
-    {
-        Console.WriteLine("=== INICIO AJUSTAR STOCK ===");
-        Console.WriteLine($"ID Producto: {id}");
-        Console.WriteLine($"Cantidad: {cantidad}");
-        Console.WriteLine($"Tipo: {tipo}");
-
-        // 1. OBTENER USUARIO VÁLIDO
-        var primerUsuario = await _context.Usuarios
-            .Where(u => u.Activo)
-            .OrderBy(u => u.IdUsuario)
-            .FirstOrDefaultAsync();
-        
-        if (primerUsuario == null)
+        public async Task<IActionResult> OnPostAjustarStockAsync(
+            int id, 
+            int cantidad, 
+            string tipo,
+            decimal? costoUnitario = null,
+            string? observacion = null,
+            DateTime? fecha = null)
         {
-            Console.WriteLine("❌ ERROR: No hay usuarios activos en la base de datos");
-            TempData["Error"] = "No hay usuarios activos en el sistema. Contacte al administrador.";
-            return RedirectToPage();
-        }
+            try
+            {
+                Console.WriteLine("=== INICIO AJUSTAR STOCK ===");
+                Console.WriteLine($"ID Producto: {id}");
+                Console.WriteLine($"Cantidad: {cantidad}");
+                Console.WriteLine($"Tipo: {tipo}");
 
-        int idUsuario = primerUsuario.IdUsuario;
-        Console.WriteLine($"✅ Usando usuario: {primerUsuario.Nombre} (ID: {idUsuario})");
+                // 1. OBTENER USUARIO AUTENTICADO
+                var nombreUsuario = User?.Identity?.Name;
+                var usuarioActual = !string.IsNullOrWhiteSpace(nombreUsuario)
+                    ? await _context.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario)
+                    : null;
+                if (usuarioActual == null)
+                {
+                    Console.WriteLine("❌ ERROR: Usuario autenticado no encontrado");
+                    TempData["Error"] = "Usuario no identificado. Inicie sesión nuevamente.";
+                    return RedirectToPage();
+                }
+                int idUsuario = usuarioActual.IdUsuario;
+                Console.WriteLine($"✅ Usando usuario autenticado: {usuarioActual.NombreUsuario} (ID: {idUsuario})");
 
         // 2. Validar producto
         var producto = await _context.Productos.FindAsync(id);
@@ -611,12 +605,11 @@ public async Task<IActionResult> OnPostAjustarStockAsync(
             return RedirectToPage();
         }
 
-        // 6. Obtener o crear tipo de movimiento
-        var tipoMovimientoNombre = esEntrada ? "Entrada" : "Salida";
-        Console.WriteLine($"Buscando tipo de movimiento: '{tipoMovimientoNombre}'");
-        
-        var tipoMovimiento = await _tiposRepo.GetOrCreateAsync(tipoMovimientoNombre);
-        Console.WriteLine($"✅ Tipo de movimiento obtenido: ID {tipoMovimiento.IdTipoMovimiento}");
+                // 6. Transacción y tipo de movimiento
+                using var tx = await _context.Database.BeginTransactionAsync();
+                var tipoMovimientoNombre = esEntrada ? "Entrada" : "Salida";
+                Console.WriteLine($"Buscando/creando tipo de movimiento: '{tipoMovimientoNombre}'");
+                var tipoMovimiento = await _tiposRepo.GetOrCreateAsync(tipoMovimientoNombre);
 
         // 7. Calcular nuevo stock
         var stockAnterior = producto.StockActual;
@@ -643,7 +636,6 @@ public async Task<IActionResult> OnPostAjustarStockAsync(
         var movimiento = new MovimientoInventario
         {
             IdProducto = producto.IdProducto,
-            IdTipoMovimiento = tipoMovimiento.IdTipoMovimiento,
             Cantidad = cantidad,
             Fecha = fecha ?? DateTime.Now,
             Observacion = string.IsNullOrWhiteSpace(observacion) 
@@ -653,13 +645,22 @@ public async Task<IActionResult> OnPostAjustarStockAsync(
             CostoTotal = unit * cantidad,
             IdUsuario = idUsuario
         };
+        if (tipoMovimiento.IdTipoMovimiento == 0)
+        {
+            movimiento.TipoMovimiento = tipoMovimiento;
+        }
+        else
+        {
+            movimiento.IdTipoMovimiento = tipoMovimiento.IdTipoMovimiento;
+        }
 
         Console.WriteLine($"Creando movimiento con idUsuario: {idUsuario}");
-        _context.MovimientoInventario.Add(movimiento);
+                _context.MovimientoInventario.Add(movimiento);
 
-        // 10. Guardar cambios
-        Console.WriteLine("Guardando cambios en la base de datos...");
-        await _context.SaveChangesAsync();
+                // 10. Guardar cambios (atomicidad)
+                Console.WriteLine("Guardando cambios en la base de datos (transacción)...");
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
         Console.WriteLine("✅ Stock ajustado exitosamente");
         Console.WriteLine("=== FIN AJUSTAR STOCK ===");
@@ -771,7 +772,14 @@ public async Task<IActionResult> OnPostAjustarStockAsync(
 
                 producto.StockActual = stockPropuesto;
 
-                mov.IdTipoMovimiento = tipoNuevo.IdTipoMovimiento;
+                if (tipoNuevo.IdTipoMovimiento == 0)
+                {
+                    mov.TipoMovimiento = tipoNuevo;
+                }
+                else
+                {
+                    mov.IdTipoMovimiento = tipoNuevo.IdTipoMovimiento;
+                }
                 mov.Cantidad = cantidad;
                 mov.Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
                 mov.CostoTotal = mov.CostoUnitario * cantidad;

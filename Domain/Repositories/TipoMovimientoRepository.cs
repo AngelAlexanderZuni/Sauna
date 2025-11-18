@@ -14,7 +14,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Repositories
             if (tipo != null) return tipo;
             tipo = new TipoMovimiento { Nombre = nombre };
             await _context.TiposMovimiento.AddAsync(tipo);
-            await _context.SaveChangesAsync();
             return tipo;
         }
     }
