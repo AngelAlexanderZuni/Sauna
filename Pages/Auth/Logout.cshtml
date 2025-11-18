@@ -1,0 +1,22 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.Auth.LogoutModel
+@{
+    ViewData["Title"] = "Cerrar Sesión";
+}
+
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div class="mx-auto h-16 w-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
+                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-secondary-900 mb-4">Sesión Cerrada</h2>
+            <p class="text-secondary-600 mb-6">Tu sesión ha sido cerrada exitosamente.</p>
+            <a href="/Auth/Login" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                Iniciar Sesión Nuevamente
+            </a>
+        </div>
+    </div>
+</div>

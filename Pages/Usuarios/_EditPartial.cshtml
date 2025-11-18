@@ -1,0 +1,129 @@
+@model ProyectoSaunaKalixto.Web.Pages.Usuarios.EditModel
+
+<!-- Modal Header -->
+<div class="modal-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold" style="color: var(--foreground);">Editar Usuario</h2>
+            <p class="text-sm mt-1" style="color: var(--muted-foreground);">Actualiza la información del usuario</p>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" class="p-2 rounded-md hover:bg-muted transition-colors">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Modal Body -->
+<form method="post" asp-page="./Edit">
+    <input type="hidden" asp-for="Usuario.NombreUsuario" />
+    
+    <div class="modal-body">
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Nombre de Usuario (readonly) -->
+            <div>
+                <label class="block text-sm font-medium mb-1" style="color: var(--foreground);">
+                    Nombre de Usuario
+                </label>
+                <input type="text" 
+                       value="@Model.Usuario.NombreUsuario"
+                       class="w-full px-3 py-2 text-sm border rounded-md" 
+                       style="border-color: var(--border); background-color: var(--muted); color: var(--muted-foreground);"
+                       readonly />
+                <p class="text-xs mt-1" style="color: var(--muted-foreground);">El nombre de usuario no se puede modificar</p>
+            </div>
+
+            <!-- Nueva Contraseña (opcional) -->
+            <div>
+                <label asp-for="Usuario.NuevaContrasenia" class="block text-sm font-medium mb-1" style="color: var(--foreground);">
+                    Nueva Contraseña
+                </label>
+                <input asp-for="Usuario.NuevaContrasenia" 
+                       type="password"
+                       class="w-full px-3 py-2 text-sm border rounded-md" 
+                       style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                       minlength="6"
+                       maxlength="100"
+                       placeholder="Dejar en blanco para mantener la actual"
+                       autocomplete="new-password" />
+                <span asp-validation-for="Usuario.NuevaContrasenia" class="text-xs" style="color: var(--destructive);"></span>
+                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Mínimo 6 caracteres. Deja en blanco si no deseas cambiarla.</p>
+            </div>
+
+            <!-- Correo -->
+            <div>
+                <label asp-for="Usuario.Correo" class="block text-sm font-medium mb-1" style="color: var(--foreground);">
+                    Correo Electrónico <span style="color: var(--destructive);">*</span>
+                </label>
+                <input asp-for="Usuario.Correo" 
+                       type="email" 
+                       class="w-full px-3 py-2 text-sm border rounded-md" 
+                       style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                       required
+                       maxlength="100"
+                       autocomplete="email" />
+                <span asp-validation-for="Usuario.Correo" class="text-xs" style="color: var(--destructive);"></span>
+            </div>
+
+            <!-- Rol -->
+            <div>
+                <label asp-for="Usuario.IdRol" class="block text-sm font-medium mb-1" style="color: var(--foreground);">
+                    Rol <span style="color: var(--destructive);">*</span>
+                </label>
+                <select asp-for="Usuario.IdRol" 
+                        asp-items="Model.Roles"
+                        class="w-full px-3 py-2 text-sm border rounded-md" 
+                        style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                        required>
+                    <option value="">Seleccione un rol</option>
+                </select>
+                <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
+            </div>
+                </select>
+                <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
+            </div>
+
+            <!-- Activo -->
+            <div>
+                <label class="flex items-center cursor-pointer">
+                    <input asp-for="Usuario.Activo" type="checkbox" class="rounded mr-2" style="border-color: var(--border);" />
+                    <span class="text-sm font-medium" style="color: var(--foreground);">Usuario Activo</span>
+                </label>
+            </div>
+        </div>
+
+        <p class="text-xs mt-4" style="color: var(--muted-foreground);">
+            <span style="color: var(--destructive);">*</span> Campos obligatorios
+        </p>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="px-4 py-2 text-sm font-medium rounded-md transition-colors" 
+                style="border: 1px solid var(--border); color: var(--foreground);">
+            Cancelar
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-white" 
+                style="background-color: var(--primary);">
+            Actualizar Usuario
+        </button>
+    </div>
+</form>
+
+<script>
+    // Detectar si se ingresa una nueva contraseña y marcar el flag
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.querySelector('input[name="Usuario.NuevaContrasenia"]');
+        const cambiarContraseniaFlag = document.getElementById('CambiarContrasenia');
+        
+        if (passwordInput && cambiarContraseniaFlag) {
+            passwordInput.addEventListener('input', function() {
+                cambiarContraseniaFlag.value = this.value.length > 0 ? 'true' : 'false';
+            });
+        }
+    });
+</script>
+

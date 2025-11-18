@@ -1,0 +1,498 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.Clientes.IndexModel
+@{
+    ViewData["Title"] = "Clientes";
+    Layout = "_LayoutSidebar";
+}
+
+<div class="flex-1 overflow-auto">
+    <div class="p-6">
+        <div class="card">
+            <!-- Header -->
+            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">
+                            @(Model.ShowInactive ? "Clientes Inactivos" : "Gestión de Clientes")
+                        </h2>
+                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">
+                            @if (Model.ShowInactive)
+                            {
+                                <span>Clientes desactivados (conservados para reportes y análisis)</span>
+                            }
+                            else
+                            {
+                                <span>Lista de clientes activos registrados</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <input type="text" 
+                                   id="searchInput"
+                                   placeholder="Buscar cliente..."
+                                   class="px-3 py-2 pr-8 text-sm border rounded-md" 
+                                   style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                                   oninput="buscarClientesDinamico(this.value)">
+                            <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4" 
+                                 style="color: var(--muted-foreground);" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        
+                        <!-- Botón para alternar entre activos/inactivos -->
+                        <a href="?ShowInactive=@(!Model.ShowInactive)" 
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors"
+                           style="border: 1px solid var(--border); color: var(--foreground); background-color: var(--background);"
+                           title="@(Model.ShowInactive ? "Ver clientes activos" : "Ver clientes inactivos")">
+                            @if (Model.ShowInactive)
+                            {
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Ver Activos</span>
+                            }
+                            else
+                            {
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Ver Inactivos</span>
+                            }
+                        </a>
+                        
+                        @if (!Model.ShowInactive)
+                        {
+                            <button onclick="loadCreateClienteForm()" 
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                                    style="background-color: var(--primary);">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Nuevo Cliente
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Clientes.Any())
+            {
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="border-b" style="border-color: var(--border); background-color: var(--muted);">
+                            <tr>
+                                <th class="w-12 px-4 py-3">
+                                    <input type="checkbox" class="rounded" style="border-color: var(--border);">
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Documento</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Contacto</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y" style="border-color: var(--border);">
+                            @foreach (var cliente in Model.Clientes)
+                            {
+                                <tr class="hover:bg-muted/50 transition-colors">
+                                    <td class="px-4 py-4">
+                                        <input type="checkbox" class="rounded" style="border-color: var(--border);">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium text-white" style="background-color: var(--primary);">
+                                                @cliente.Nombre.Substring(0, 1).ToUpper()@(cliente.Apellido?.Substring(0, 1).ToUpper() ?? "")
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium" style="color: var(--foreground);">@cliente.Nombre @cliente.Apellido</p>
+                                                <p class="text-xs" style="color: var(--muted-foreground);">@cliente.Correo</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <p class="text-sm" style="color: var(--foreground);">@cliente.NumeroDocumento</p>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (cliente.Activo)
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5"></span>
+                                                Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-gray-600 mr-1.5"></span>
+                                                Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <p class="text-sm" style="color: var(--foreground);">@cliente.Telefono</p>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            @if (cliente.Activo)
+                                            {
+                                                <!-- Acciones para clientes ACTIVOS -->
+                                                <button onclick="loadEditClienteForm('@cliente.ClienteID')" 
+                                                        class="inline-flex items-center p-1.5 rounded hover:bg-muted transition-colors" 
+                                                        style="color: var(--muted-foreground);" title="Editar">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button onclick="loadDeleteClienteConfirm('@cliente.ClienteID')" 
+                                                        class="inline-flex items-center p-1.5 rounded hover:bg-red-50 transition-colors text-red-600" title="Desactivar">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <!-- Acciones para clientes INACTIVOS -->
+                                                <button onclick="reactivarCliente('@cliente.ClienteID')" 
+                                                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded hover:bg-green-50 transition-colors text-green-600 border border-green-300" 
+                                                        title="Reactivar Cliente">
+                                                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Reactivar
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="border-t px-6 py-3 flex items-center justify-between" style="border-color: var(--border);">
+                    <p class="text-sm" style="color: var(--muted-foreground);">
+                        Mostrando @Model.Clientes.Count() de @Model.Clientes.Count() clientes
+                    </p>
+                    <div class="flex items-center space-x-2">
+                        <button class="inline-flex items-center px-3 py-1 text-sm font-medium rounded border transition-colors" 
+                                style="border-color: var(--border); color: var(--foreground);">
+                            Anterior
+                        </button>
+                        <span class="text-sm" style="color: var(--foreground);">Página 1 de 1</span>
+                        <button class="inline-flex items-center px-3 py-1 text-sm font-medium rounded border transition-colors" 
+                                style="border-color: var(--border); color: var(--foreground);">
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="px-6 py-12 text-center">
+                    <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    @if (Model.ShowInactive)
+                    {
+                        <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">No hay clientes inactivos</h3>
+                        <p class="text-sm mb-4" style="color: var(--muted-foreground);">Todos los clientes están activos en el sistema</p>
+                        <a href="?ShowInactive=false" 
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                           style="background-color: var(--primary);">
+                            Ver Clientes Activos
+                        </a>
+                    }
+                    else
+                    {
+                        <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">No hay clientes registrados</h3>
+                        <p class="text-sm mb-4" style="color: var(--muted-foreground);">Comienza agregando tu primer cliente</p>
+                        <button onclick="loadCreateClienteForm()" 
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                           style="background-color: var(--primary);">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear Cliente
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Búsqueda dinámica en tiempo real
+        let timeoutBusqueda;
+        function buscarClientesDinamico(termino) {
+            clearTimeout(timeoutBusqueda);
+            
+            // Si está vacío, mostrar todas las filas
+            if (!termino || termino.trim() === '') {
+                mostrarTodasLasFilas();
+                return;
+            }
+            
+            // Debounce: esperar 300ms después de que el usuario deje de escribir
+            timeoutBusqueda = setTimeout(() => {
+                const terminoBusqueda = termino.toLowerCase().trim();
+                const filas = document.querySelectorAll('tbody tr');
+                let coincidencias = 0;
+                
+                filas.forEach(fila => {
+                    const textoFila = fila.textContent.toLowerCase();
+                    if (textoFila.includes(terminoBusqueda)) {
+                        fila.style.display = '';
+                        coincidencias++;
+                    } else {
+                        fila.style.display = 'none';
+                    }
+                });
+                
+                // Mostrar mensaje si no hay coincidencias
+                mostrarMensajeSinResultados(coincidencias === 0);
+            }, 300);
+        }
+        
+        function mostrarTodasLasFilas() {
+            const filas = document.querySelectorAll('tbody tr');
+            filas.forEach(fila => fila.style.display = '');
+            mostrarMensajeSinResultados(false);
+        }
+        
+        function mostrarMensajeSinResultados(mostrar) {
+            let mensaje = document.getElementById('sinResultadosBusqueda');
+            
+            if (mostrar) {
+                if (!mensaje) {
+                    const tbody = document.querySelector('tbody');
+                    mensaje = document.createElement('tr');
+                    mensaje.id = 'sinResultadosBusqueda';
+                    mensaje.innerHTML = `
+                        <td colspan="100" class="px-6 py-8 text-center">
+                            <div class="flex flex-col items-center">
+                                <svg class="h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">No se encontraron resultados</p>
+                                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Intenta con otros términos de búsqueda</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(mensaje);
+                }
+            } else {
+                if (mensaje) {
+                    mensaje.remove();
+                }
+            }
+        }
+
+        async function loadCreateClienteForm() {
+            try {
+                const response = await fetch('/Clientes/Create?handler=Modal', {
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    }
+                });
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario');
+            }
+        }
+
+        async function loadEditClienteForm(id) {
+            try {
+                const response = await fetch(`/Clientes/Edit?id=${id}&handler=Modal`);
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario');
+            }
+        }
+
+        async function loadDeleteClienteConfirm(id) {
+            try {
+                const response = await fetch(`/Clientes/Delete?id=${id}&handler=Modal`);
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario de eliminación');
+            }
+        }
+
+        async function reactivarCliente(id) {
+            // Mostrar modal de confirmación personalizado
+            mostrarModalConfirmacion(
+                '¿Deseas reactivar este cliente?',
+                'El cliente volverá a estar disponible en el sistema.',
+                async () => {
+                    try {
+                        // Obtener token CSRF del formulario
+                        let token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        
+                        // Si no existe, crear uno temporal
+                        if (!token) {
+                            const formResponse = await fetch('/Clientes/Edit?id=' + id + '&handler=Modal');
+                            const formHtml = await formResponse.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(formHtml, 'text/html');
+                            token = doc.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                        }
+                        
+                        const formData = new FormData();
+                        formData.append('__RequestVerificationToken', token);
+                        
+                        const response = await fetch(`/Clientes/Edit?id=${id}&handler=Reactivate`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'RequestVerificationToken': token
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            mostrarToast(result.message || 'Cliente reactivado exitosamente', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            mostrarToast(result.message || 'Error al reactivar el cliente', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error al reactivar cliente:', error);
+                        mostrarToast('Error al reactivar el cliente: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        // Función para mostrar modal de confirmación personalizado
+        function mostrarModalConfirmacion(titulo, mensaje, onConfirm) {
+            document.getElementById('confirmTitle').textContent = titulo;
+            document.getElementById('confirmMessage').textContent = mensaje;
+            
+            const confirmButton = document.getElementById('confirmButton');
+            
+            // Remover listeners anteriores clonando el botón
+            const newButton = confirmButton.cloneNode(true);
+            confirmButton.parentNode.replaceChild(newButton, confirmButton);
+            
+            // Agregar nuevo listener
+            newButton.addEventListener('click', () => {
+                Modal.close('confirmModal');
+                onConfirm();
+            });
+            
+            Modal.open('confirmModal');
+        }
+
+        // Función para mostrar toast messages
+        function mostrarToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 px-6 py-3 rounded-md shadow-lg z-50 animate-fade-in';
+            
+            if (type === 'success') {
+                toast.style.backgroundColor = 'var(--primary)';
+                toast.style.color = 'white';
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                `;
+            } else {
+                toast.style.backgroundColor = 'var(--destructive)';
+                toast.style.color = 'white';
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(toast);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Manejar submit de formularios en modales
+        document.addEventListener('submit', async function(e) {
+            if (e.target.closest('.modal-content')) {
+                e.preventDefault();
+                
+                const form = e.target;
+                const formData = new FormData(form);
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method,
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const contentType = response.headers.get('content-type');
+                        
+                        // Si es JSON (éxito)
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            if (result.success) {
+                                Modal.close('crudModal');
+                                
+                                // Mostrar mensaje de éxito
+                                const successDiv = document.createElement('div');
+                                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                                successDiv.textContent = result.message || 'Operación exitosa';
+                                document.body.appendChild(successDiv);
+                                
+                                // Recargar la página después de mostrar el mensaje
+                                setTimeout(() => {
+                                    successDiv.remove();
+                                    location.reload();
+                                }, 1500);
+                            }
+                        } else {
+                            // Si es HTML parcial (hay errores de validación)
+                            const html = await response.text();
+                            document.getElementById('modalContent').innerHTML = html;
+                        }
+                    } else {
+                        const html = await response.text();
+                        document.getElementById('modalContent').innerHTML = html;
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('Error al guardar los cambios. Por favor, intente nuevamente.');
+                }
+            }
+        });
+    </script>
+}

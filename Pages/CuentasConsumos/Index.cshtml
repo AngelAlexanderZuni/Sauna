@@ -1,0 +1,40 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.CuentasConsumos.IndexModel
+@{
+    ViewData["Title"] = "Cuentas y Consumos";
+    Layout = "_LayoutSidebar";
+}
+
+<div class="flex-1 overflow-auto">
+    <div class="p-6">
+        <div class="card">
+            <!-- Header -->
+            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Gestión de Cuentas y Consumos</h2>
+                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Administra las cuentas y consumos de los clientes</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                                style="background-color: var(--primary);">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Nueva Cuenta
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
+                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
+            </div>
+        </div>
+    </div>
+</div>

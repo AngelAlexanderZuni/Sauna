@@ -1,0 +1,501 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.Usuarios.IndexModel
+@{
+    ViewData["Title"] = "Usuarios";
+    Layout = "_LayoutSidebar";
+}
+
+<div class="flex-1 overflow-auto">
+    <div class="p-6">
+        <div class="card">
+            <!-- Header -->
+            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <h2 class="text-lg font-semibold" style="color: var(--foreground);">
+                                @if (Model.ShowInactive)
+                                {
+                                    <span>Usuarios Inactivos</span>
+                                }
+                                else
+                                {
+                                    <span>Gestión de Usuarios</span>
+                                }
+                            </h2>
+                            <p class="text-sm mt-1" style="color: var(--muted-foreground);">
+                                @if (Model.ShowInactive)
+                                {
+                                    <span>Usuarios desactivados del sistema</span>
+                                }
+                                else
+                                {
+                                    <span>Administra los usuarios del sistema</span>
+                                }
+                            </p>
+                        </div>
+                        <!-- Toggle Activos/Inactivos -->
+                        <a href="?ShowInactive=@(!Model.ShowInactive)" 
+                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border transition-colors"
+                           style="border-color: var(--border); background-color: var(--muted); color: var(--foreground);">
+                            @if (Model.ShowInactive)
+                            {
+                                <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Ver Activos</span>
+                            }
+                            else
+                            {
+                                <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                </svg>
+                                <span>Ver Inactivos</span>
+                            }
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <input type="text" 
+                                   id="searchInputUsuarios"
+                                   placeholder="Buscar usuario..."
+                                   class="px-3 py-2 pr-8 text-sm border rounded-md" 
+                                   style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                                   oninput="buscarUsuariosDinamico(this.value)">
+                            <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4" 
+                                 style="color: var(--muted-foreground);" 
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        @if (!Model.ShowInactive)
+                        {
+                            <button onclick="loadCreateUsuarioForm()" 
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                                    style="background-color: var(--primary);">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Nuevo Usuario
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Usuarios.Any())
+            {
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="border-b" style="border-color: var(--border); background-color: var(--muted);">
+                            <tr>
+                                <th class="w-12 px-4 py-3">
+                                    <input type="checkbox" class="rounded" style="border-color: var(--border);">
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Usuario</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Rol</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Fecha Creación</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y" style="border-color: var(--border);">
+                            @foreach (var usuario in Model.Usuarios)
+                            {
+                                <tr class="hover:bg-muted/50 transition-colors">
+                                    <td class="px-4 py-4">
+                                        <input type="checkbox" class="rounded" style="border-color: var(--border);">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium text-white" style="background-color: var(--primary);">
+                                                @usuario.NombreUsuario.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium" style="color: var(--foreground);">@usuario.NombreUsuario</p>
+                                                <p class="text-xs" style="color: var(--muted-foreground);">@usuario.CorreoElectronico</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (usuario.Rol?.NombreRol == "Administrador")
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                                Admin
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                                                </svg>
+                                                @usuario.Rol?.NombreRol
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (usuario.Activo)
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5"></span>
+                                                Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-gray-600 mr-1.5"></span>
+                                                Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <p class="text-sm" style="color: var(--foreground);">@usuario.FechaCreacion.ToString("dd/MM/yyyy")</p>
+                                        <p class="text-xs" style="color: var(--muted-foreground);">@usuario.FechaCreacion.ToString("HH:mm")</p>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            @if (usuario.Activo)
+                                            {
+                                                <button onclick="loadEditUsuarioForm('@usuario.NombreUsuario')" 
+                                                        class="inline-flex items-center p-1.5 rounded hover:bg-muted transition-colors" 
+                                                        style="color: var(--muted-foreground);" title="Editar">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button onclick="loadDeleteUsuarioConfirm('@usuario.NombreUsuario')" 
+                                                        class="inline-flex items-center p-1.5 rounded hover:bg-red-50 transition-colors text-red-600" title="Desactivar">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                                    </svg>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button onclick="reactivarUsuario('@usuario.NombreUsuario')" 
+                                                        class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border-2 transition-colors"
+                                                        style="border-color: var(--primary); color: var(--primary);"
+                                                        title="Reactivar usuario">
+                                                    <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Reactivar
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="border-t px-6 py-3 flex items-center justify-between" style="border-color: var(--border);">
+                    <p class="text-sm" style="color: var(--muted-foreground);">
+                        Mostrando @Model.Usuarios.Count() de @Model.Usuarios.Count() usuarios
+                    </p>
+                    <div class="flex items-center space-x-2">
+                        <button class="inline-flex items-center px-3 py-1 text-sm font-medium rounded border transition-colors" 
+                                style="border-color: var(--border); color: var(--foreground);">
+                            Anterior
+                        </button>
+                        <span class="text-sm" style="color: var(--foreground);">Página 1 de 1</span>
+                        <button class="inline-flex items-center px-3 py-1 text-sm font-medium rounded border transition-colors" 
+                                style="border-color: var(--border); color: var(--foreground);">
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="px-6 py-16 text-center">
+                    <svg class="mx-auto h-16 w-16 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <h3 class="text-sm font-medium mb-2" style="color: var(--foreground);">
+                        @if (Model.ShowInactive)
+                        {
+                            <span>No hay usuarios inactivos</span>
+                        }
+                        else
+                        {
+                            <span>No hay usuarios registrados</span>
+                        }
+                    </h3>
+                    <p class="text-sm mb-6" style="color: var(--muted-foreground);">
+                        @if (Model.ShowInactive)
+                        {
+                            <span>Todos los usuarios están activos actualmente.</span>
+                        }
+                        else
+                        {
+                            <span>Comienza creando tu primer usuario del sistema.</span>
+                        }
+                    </p>
+                    @if (!Model.ShowInactive)
+                    {
+                        <button onclick="loadCreateUsuarioForm()" 
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                                style="background-color: var(--primary);">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear Usuario
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Búsqueda dinámica en tiempo real para usuarios
+        let timeoutBusquedaUsuarios;
+        function buscarUsuariosDinamico(termino) {
+            clearTimeout(timeoutBusquedaUsuarios);
+            
+            // Si está vacío, mostrar todas las filas
+            if (!termino || termino.trim() === '') {
+                mostrarTodasLasFilasUsuarios();
+                return;
+            }
+            
+            // Debounce: esperar 300ms después de que el usuario deje de escribir
+            timeoutBusquedaUsuarios = setTimeout(() => {
+                const terminoBusqueda = termino.toLowerCase().trim();
+                const filas = document.querySelectorAll('tbody tr');
+                let coincidencias = 0;
+                
+                filas.forEach(fila => {
+                    const textoFila = fila.textContent.toLowerCase();
+                    if (textoFila.includes(terminoBusqueda)) {
+                        fila.style.display = '';
+                        coincidencias++;
+                    } else {
+                        fila.style.display = 'none';
+                    }
+                });
+                
+                // Mostrar mensaje si no hay coincidencias
+                mostrarMensajeSinResultadosUsuarios(coincidencias === 0);
+            }, 300);
+        }
+        
+        function mostrarTodasLasFilasUsuarios() {
+            const filas = document.querySelectorAll('tbody tr');
+            filas.forEach(fila => fila.style.display = '');
+            mostrarMensajeSinResultadosUsuarios(false);
+        }
+        
+        function mostrarMensajeSinResultadosUsuarios(mostrar) {
+            let mensaje = document.getElementById('sinResultadosBusquedaUsuarios');
+            
+            if (mostrar) {
+                if (!mensaje) {
+                    const tbody = document.querySelector('tbody');
+                    mensaje = document.createElement('tr');
+                    mensaje.id = 'sinResultadosBusquedaUsuarios';
+                    mensaje.innerHTML = `
+                        <td colspan="100" class="px-6 py-8 text-center">
+                            <div class="flex flex-col items-center">
+                                <svg class="h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">No se encontraron resultados</p>
+                                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Intenta con otros términos de búsqueda</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(mensaje);
+                }
+            } else {
+                if (mensaje) {
+                    mensaje.remove();
+                }
+            }
+        }
+
+        async function loadCreateUsuarioForm() {
+            try {
+                const response = await fetch('/Usuarios/Create?handler=Modal');
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario');
+            }
+        }
+
+        async function loadEditUsuarioForm(id) {
+            try {
+                const response = await fetch(`/Usuarios/Edit?id=${id}&handler=Modal`);
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario');
+            }
+        }
+
+        async function loadDeleteUsuarioConfirm(id) {
+            try {
+                const response = await fetch(`/Usuarios/Delete?id=${id}&handler=Modal`);
+                const html = await response.text();
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error al cargar el formulario de eliminación');
+            }
+        }
+
+        // Reactivar usuario inactivo
+        async function reactivarUsuario(id) {
+            // Mostrar modal de confirmación personalizado
+            mostrarModalConfirmacion(
+                '¿Deseas reactivar este usuario?',
+                'El usuario volverá a tener acceso al sistema.',
+                async () => {
+                    try {
+                        // Obtener token CSRF del formulario
+                        let token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        
+                        // Si no existe, crear uno temporal
+                        if (!token) {
+                            const formResponse = await fetch('/Usuarios/Edit?id=' + id + '&handler=Modal');
+                            const formHtml = await formResponse.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(formHtml, 'text/html');
+                            token = doc.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                        }
+
+                        const formData = new FormData();
+                        formData.append('__RequestVerificationToken', token);
+                        
+                        const response = await fetch(`/Usuarios/Edit?id=${id}&handler=Reactivate`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'RequestVerificationToken': token
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            mostrarToast(result.message || 'Usuario reactivado exitosamente', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            mostrarToast(result.message || 'Error al reactivar el usuario', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error al reactivar usuario:', error);
+                        mostrarToast('Error al reactivar el usuario: ' + error.message, 'error');
+                    }
+                }
+            );
+        }
+
+        // Función para mostrar modal de confirmación personalizado
+        function mostrarModalConfirmacion(titulo, mensaje, onConfirm) {
+            document.getElementById('confirmTitle').textContent = titulo;
+            document.getElementById('confirmMessage').textContent = mensaje;
+            
+            const confirmButton = document.getElementById('confirmButton');
+            
+            // Remover listeners anteriores clonando el botón
+            const newButton = confirmButton.cloneNode(true);
+            confirmButton.parentNode.replaceChild(newButton, confirmButton);
+            
+            // Agregar nuevo listener
+            newButton.addEventListener('click', () => {
+                Modal.close('confirmModal');
+                onConfirm();
+            });
+            
+            Modal.open('confirmModal');
+        }
+
+        // Función para mostrar toast messages
+        function mostrarToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 px-6 py-3 rounded-md shadow-lg z-50 animate-fade-in';
+            
+            if (type === 'success') {
+                toast.style.backgroundColor = 'var(--primary)';
+                toast.style.color = 'white';
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                `;
+            } else {
+                toast.style.backgroundColor = 'var(--destructive)';
+                toast.style.color = 'white';
+                toast.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${message}</span>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(toast);
+            
+            // Remover después de 3 segundos
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Manejar submit de formularios en modales
+        document.addEventListener('submit', async function(e) {
+            if (e.target.closest('.modal-content')) {
+                e.preventDefault();
+                
+                const form = e.target;
+                const formData = new FormData(form);
+                
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method,
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        Modal.close('crudModal');
+                        location.reload();
+                    } else {
+                        const html = await response.text();
+                        document.getElementById('modalContent').innerHTML = html;
+                    }
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    alert('Error al guardar los cambios');
+                }
+            }
+        });
+    </script>
+}

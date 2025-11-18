@@ -1,0 +1,40 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.Reportes.IndexModel
+@{
+    ViewData["Title"] = "Reportes y Estadísticas";
+    Layout = "_LayoutSidebar";
+}
+
+<div class="flex-1 overflow-auto">
+    <div class="p-6">
+        <div class="card">
+            <!-- Header -->
+            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Reportes y Estadísticas</h2>
+                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Analiza el rendimiento del negocio</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                                style="background-color: var(--primary);">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Generar Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
+                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
+            </div>
+        </div>
+    </div>
+</div>

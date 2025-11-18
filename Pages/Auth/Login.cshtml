@@ -1,0 +1,1372 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.Auth.LoginModel
+@{
+    ViewData["Title"] = "Iniciar Sesión - Sauna Kalixto";
+    Layout = "_LayoutSimple";
+}
+
+<style>
+    /* ============================================
+       VARIABLES DE DISEÑO PROFESIONAL
+       ============================================ */
+    :root {
+        /* Paleta Principal */
+        --primary-blue: #2563eb;
+        --primary-blue-dark: #1e40af;
+        --primary-blue-light: #3b82f6;
+        --secondary-purple: #7c3aed;
+        --secondary-purple-dark: #6d28d9;
+        --accent-cyan: #06b6d4;
+        --accent-emerald: #10b981;
+        --accent-amber: #f59e0b;
+        
+        /* Colores de Estado */
+        --success-green: #059669;
+        --success-light: #10b981;
+        --error-red: #dc2626;
+        --warning-amber: #d97706;
+        
+        /* Fondos */
+        --bg-white: #ffffff;
+        --bg-slate: #f8fafc;
+        --bg-glass: rgba(255, 255, 255, 0.7);
+        --bg-glass-strong: rgba(255, 255, 255, 0.85);
+        
+        /* Textos */
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --text-light: #94a3b8;
+        
+        /* Bordes y Sombras */
+        --border-light: rgba(148, 163, 184, 0.2);
+        --border-color: rgba(148, 163, 184, 0.3);
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+        --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+        
+        /* Efectos de Brillo */
+        --glow-blue: rgba(37, 99, 235, 0.4);
+        --glow-purple: rgba(124, 58, 237, 0.4);
+        --glow-cyan: rgba(6, 182, 212, 0.4);
+        --glow-green: rgba(16, 185, 129, 0.4);
+    }
+
+    /* ============================================
+       RESET Y BASE
+       ============================================ */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ============================================
+       ANIMACIONES MODERNAS
+       ============================================ */
+    @@keyframes meshGradient {
+        0%, 100% { 
+            background-position: 0% 50%, 100% 50%, 50% 100%, 50% 0%;
+        }
+        25% { 
+            background-position: 50% 25%, 75% 75%, 25% 75%, 75% 25%;
+        }
+        50% { 
+            background-position: 100% 50%, 0% 50%, 50% 0%, 50% 100%;
+        }
+        75% { 
+            background-position: 75% 75%, 25% 25%, 75% 25%, 25% 75%;
+        }
+    }
+
+    @@keyframes floatSmooth {
+        0%, 100% { 
+            transform: translate3d(0, 0, 0) rotate(0deg);
+        }
+        25% { 
+            transform: translate3d(15px, -15px, 10px) rotate(2deg);
+        }
+        50% { 
+            transform: translate3d(0, -25px, 20px) rotate(0deg);
+        }
+        75% { 
+            transform: translate3d(-15px, -15px, 10px) rotate(-2deg);
+        }
+    }
+
+    @@keyframes particleOrbit {
+        0% {
+            transform: rotate(0deg) translateX(120px) rotate(0deg);
+            opacity: 0;
+        }
+        10%, 90% {
+            opacity: 1;
+        }
+        100% {
+            transform: rotate(360deg) translateX(120px) rotate(-360deg);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes glowPulse {
+        0%, 100% { 
+            filter: drop-shadow(0 0 12px var(--glow-blue));
+        }
+        50% { 
+            filter: drop-shadow(0 0 24px var(--glow-blue));
+        }
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: -200% center;
+        }
+        100% {
+            background-position: 200% center;
+        }
+    }
+
+    @@keyframes morphBlob {
+        0%, 100% { 
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            transform: rotate(0deg) scale(1);
+        }
+        33% { 
+            border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+            transform: rotate(120deg) scale(1.05);
+        }
+        66% { 
+            border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+            transform: rotate(240deg) scale(0.95);
+        }
+    }
+
+    @@keyframes slideIn {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInBlur {
+        0% {
+            opacity: 0;
+            filter: blur(10px);
+        }
+        100% {
+            opacity: 1;
+            filter: blur(0);
+        }
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       LAYOUT PRINCIPAL
+       ============================================ */
+    .main-container {
+        min-height: 100vh;
+        display: flex;
+        perspective: 2000px;
+        position: relative;
+        overflow: hidden;
+        background: var(--bg-slate);
+        padding: 1rem;
+    }
+
+    /* ============================================
+       FONDOS ANIMADOS
+       ============================================ */
+    .animated-background {
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(124, 58, 237, 0.10) 0%, transparent 40%),
+            radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+            radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+        background-size: 250% 250%;
+        animation: meshGradient 25s ease infinite;
+    }
+
+    .blob-container {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .floating-blob {
+        position: absolute;
+        filter: blur(80px);
+        opacity: 0.6;
+        animation: morphBlob 18s ease-in-out infinite, floatSmooth 22s ease-in-out infinite;
+    }
+
+    .blob-blue {
+        width: 450px;
+        height: 450px;
+        top: -10%;
+        left: -10%;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.15));
+        animation-delay: 0s;
+    }
+
+    .blob-purple {
+        width: 400px;
+        height: 400px;
+        bottom: -10%;
+        right: -10%;
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(139, 92, 246, 0.15));
+        animation-delay: 6s;
+    }
+
+    .blob-cyan {
+        width: 350px;
+        height: 350px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(34, 211, 238, 0.1));
+        animation-delay: 12s;
+    }
+
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    }
+
+    .particle-system {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        animation: particleOrbit linear infinite;
+    }
+
+    .particle-blue {
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+        box-shadow: 0 0 15px var(--glow-blue);
+        animation-duration: 16s;
+    }
+
+    .particle-purple {
+        background: linear-gradient(135deg, var(--secondary-purple), var(--secondary-purple-dark));
+        box-shadow: 0 0 15px var(--glow-purple);
+        animation-duration: 20s;
+    }
+
+    .particle-cyan {
+        background: linear-gradient(135deg, var(--accent-cyan), #22d3ee);
+        box-shadow: 0 0 15px var(--glow-cyan);
+        animation-duration: 24s;
+    }
+
+    /* ============================================
+       PANEL IZQUIERDO (BRAND)
+       ============================================ */
+    .brand-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 2.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .brand-content {
+        animation: slideIn 0.8s ease-out;
+    }
+
+    /* Logo */
+    .logo-container {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.75rem 1.5rem 0.75rem 0.75rem;
+        background: var(--bg-glass-strong);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid var(--border-light);
+        border-radius: 1.25rem;
+        box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        margin-bottom: 2.5rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .logo-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(37, 99, 235, 0.1), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .logo-container:hover::before {
+        transform: translateX(100%);
+    }
+
+    .logo-container:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg), 0 0 30px var(--glow-blue);
+    }
+
+    .logo-icon {
+        width: 3rem;
+        height: 3rem;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+        border-radius: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: var(--shadow-md);
+        transition: transform 0.4s ease;
+    }
+
+    .logo-container:hover .logo-icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    /* Contenido Principal */
+    .main-content {
+        max-width: 580px;
+    }
+
+    .main-title {
+        font-size: 2.75rem;
+        font-weight: 900;
+        line-height: 1.1;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 50%, var(--accent-cyan) 100%);
+        background-size: 200% auto;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 3s linear infinite;
+    }
+
+    .main-subtitle {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    /* Feature Cards */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .feature-card {
+        padding: 1.5rem;
+        background: var(--bg-glass-strong);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid var(--border-light);
+        border-radius: 1.25rem;
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: fadeInBlur 0.6s ease-out;
+    }
+
+    .feature-card:nth-child(1) { animation-delay: 0.1s; }
+    .feature-card:nth-child(2) { animation-delay: 0.2s; }
+    .feature-card:nth-child(3) { animation-delay: 0.3s; }
+    .feature-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.15), transparent 70%);
+        transform: translate(-50%, -50%);
+        transition: all 0.6s ease;
+    }
+
+    .feature-card:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-blue-light);
+    }
+
+    .feature-icon {
+        width: 3rem;
+        height: 3rem;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+        border-radius: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        transition: all 0.4s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .feature-card:hover .feature-icon {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+        transform: scale(1.15) rotate(-8deg);
+    }
+
+    .feature-icon svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: var(--primary-blue);
+        transition: color 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon svg {
+        color: white;
+    }
+
+    .feature-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.375rem;
+    }
+
+    .feature-description {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    /* Stats Section */
+    .stats-container {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: var(--bg-glass-strong);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid var(--border-light);
+        border-radius: 1.25rem;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.4s ease;
+        animation: fadeInBlur 0.8s ease-out 0.5s both;
+    }
+
+    .stats-container::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: -100%;
+        width: 100%;
+        height: 200%;
+        background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.1), transparent);
+        transform: translateY(-50%);
+        transition: left 0.8s ease;
+    }
+
+    .stats-container:hover::before {
+        left: 100%;
+    }
+
+    .stats-container:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg), 0 0 30px var(--glow-purple);
+    }
+
+    .stat-item {
+        flex: 1;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: scale(1.1);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.375rem;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .brand-footer {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        animation: fadeInBlur 0.8s ease-out 0.8s both;
+    }
+
+    /* ============================================
+       PANEL DERECHO (FORMULARIO)
+       ============================================ */
+    .form-section {
+        width: 520px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem;
+        background: var(--bg-glass);
+        backdrop-filter: blur(40px) saturate(180%);
+        box-shadow: var(--shadow-xl);
+        position: relative;
+        z-index: 2;
+    }
+
+    .form-section::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.08), transparent 70%);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        transition: all 0.8s ease;
+    }
+
+    .form-section:hover::before {
+        width: 800px;
+        height: 800px;
+    }
+
+    .form-wrapper {
+        width: 100%;
+        max-width: 420px;
+        animation: fadeInBlur 0.8s ease-out 0.4s both;
+    }
+
+    /* Badge de Seguridad */
+    .security-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        padding: 0.75rem 1.25rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+        border: 2px solid rgba(16, 185, 129, 0.4);
+        border-radius: 1.75rem;
+        font-size: 0.8125rem;
+        font-weight: 800;
+        color: var(--success-green);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 auto 2rem;
+        box-shadow: var(--shadow-sm), 0 0 20px rgba(16, 185, 129, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .security-badge::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+        animation: shimmer 2.5s linear infinite;
+    }
+
+    .security-badge svg {
+        position: relative;
+        z-index: 1;
+    }
+
+    .security-badge span {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Form Header */
+    .form-title {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        text-align: center;
+    }
+
+    .form-subtitle {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    /* Alert */
+    .alert-error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.875rem;
+        padding: 1rem 1.25rem;
+        background: rgba(239, 68, 68, 0.1);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        border-left: 4px solid var(--error-red);
+        border-radius: 0.875rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        animation: slideIn 0.4s ease-out;
+    }
+
+    .alert-icon {
+        flex-shrink: 0;
+        color: var(--error-red);
+    }
+
+    .alert-content {
+        flex: 1;
+    }
+
+    .alert-title {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: var(--error-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .alert-message {
+        font-size: 0.875rem;
+        color: #991b1b;
+        line-height: 1.5;
+    }
+
+    /* Form Fields */
+    .form-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.625rem;
+    }
+
+    .required-indicator {
+        color: var(--accent-emerald);
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    .input-container {
+        position: relative;
+    }
+
+    .form-input {
+        width: 100%;
+        height: 3.25rem;
+        padding: 0 1.125rem 0 3.25rem;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid var(--border-color);
+        border-radius: 0.875rem;
+        font-size: 0.9375rem;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        outline: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-input::placeholder {
+        color: var(--text-light);
+    }
+
+    .form-input:hover {
+        border-color: var(--primary-blue-light);
+        background: rgba(255, 255, 255, 0.85);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .form-input:focus {
+        border-color: var(--primary-blue);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.5rem;
+        height: 1.5rem;
+        color: var(--text-muted);
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus ~ .input-icon {
+        color: var(--primary-blue);
+        transform: translateY(-50%) scale(1.15);
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 0.625rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .toggle-password:hover {
+        background: rgba(124, 58, 237, 0.15);
+        color: var(--secondary-purple);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .validation-error {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--error-red);
+        font-weight: 600;
+    }
+
+    /* Submit Button */
+    .submit-button {
+        width: 100%;
+        height: 3.5rem;
+        margin-top: 1rem;
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple), var(--accent-cyan));
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 0.875rem;
+        font-size: 1rem;
+        font-weight: 800;
+        color: white;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: var(--shadow-md), 0 0 30px rgba(37, 99, 235, 0.3);
+        animation: shimmer 3s ease infinite;
+    }
+
+    .submit-button::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transform: translateX(-100%) skewX(-15deg);
+        transition: transform 0.6s ease;
+    }
+
+    .submit-button:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: var(--shadow-xl), 0 0 50px rgba(124, 58, 237, 0.5);
+    }
+
+    .submit-button:hover::before {
+        transform: translateX(100%) skewX(-15deg);
+    }
+
+    .submit-button:active {
+        transform: translateY(-2px) scale(1);
+    }
+
+    .submit-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .loading-spinner {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    /* Form Footer */
+    .form-footer {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--border-light);
+        text-align: center;
+    }
+
+    .help-text {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.25rem;
+    }
+
+    .help-link {
+        color: var(--primary-blue);
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .help-link::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary-blue), var(--secondary-purple));
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+
+    .help-link:hover {
+        color: var(--secondary-purple);
+    }
+
+    .help-link:hover::after {
+        width: 100%;
+    }
+
+    .ssl-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.125rem;
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(14, 165, 233, 0.08));
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(6, 182, 212, 0.3);
+        color: #0891b2;
+        border-radius: 0.625rem;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* ============================================
+       RESPONSIVE DESIGN
+       ============================================ */
+    @@media (max-width: 1024px) {
+        .brand-section {
+            display: none;
+        }
+
+        .form-section {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .main-container {
+            padding: 0.5rem;
+        }
+
+        .form-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .main-title {
+            font-size: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.75rem;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-input,
+        .submit-button {
+            height: 3rem;
+        }
+    }
+
+    /* ============================================
+       ACCESIBILIDAD
+       ============================================ */
+    @@media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    *:focus-visible {
+        outline: 3px solid var(--primary-blue-light);
+        outline-offset: 3px;
+        border-radius: 0.5rem;
+    }
+</style>
+
+<div class="main-container">
+    <!-- Fondos Animados -->
+    <div class="animated-background"></div>
+    
+    <div class="blob-container">
+        <div class="floating-blob blob-blue"></div>
+        <div class="floating-blob blob-purple"></div>
+        <div class="floating-blob blob-cyan"></div>
+    </div>
+    
+    <div class="grid-overlay"></div>
+    
+    <div class="particle-system" id="particleSystem"></div>
+
+    <!-- Panel de Marca (Izquierda) -->
+    <div class="brand-section">
+        <div class="brand-content">
+            <!-- Logo -->
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <span class="logo-text">Sauna Kalixto</span>
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="main-content">
+                <h1 class="main-title">
+                    Sistema de Gestión <span class="gradient-text">Empresarial</span>
+                </h1>
+                <p class="main-subtitle">
+                    Plataforma integral diseñada para optimizar la administración, 
+                    control operativo y toma de decisiones estratégicas de su organización.
+                </p>
+
+                <!-- Features -->
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Seguridad Avanzada</div>
+                        <div class="feature-description">Encriptación de nivel bancario</div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Alto Rendimiento</div>
+                        <div class="feature-description">Procesamiento en tiempo real</div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Analytics Avanzado</div>
+                        <div class="feature-description">Reportes detallados e insights</div>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="feature-title">Disponibilidad 24/7</div>
+                        <div class="feature-description">Acceso desde cualquier lugar</div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Soporte</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">ISO</div>
+                        <div class="stat-label">Certificado</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="brand-footer">
+            <p>© 2024 Sauna Kalixto. Todos los derechos reservados.</p>
+        </div>
+    </div>
+
+    <!-- Panel de Formulario (Derecha) -->
+    <div class="form-section">
+        <div class="form-wrapper">
+            <!-- Badge de Seguridad (Verde) -->
+            <div class="security-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+                </svg>
+                <span>Acceso Seguro</span>
+            </div>
+
+            <!-- Header -->
+            <h2 class="form-title">Iniciar Sesión</h2>
+            <p class="form-subtitle">Ingrese sus credenciales para acceder al sistema</p>
+
+            <!-- Alert de Error -->
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert-error" role="alert">
+                    <svg class="alert-icon" style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div class="alert-content">
+                        <div class="alert-title">Error de Autenticación</div>
+                        <div class="alert-message">@Model.ErrorMessage</div>
+                    </div>
+                </div>
+            }
+
+            <!-- Formulario -->
+            <form method="post" class="form-fields" id="loginForm" novalidate>
+                <!-- Campo Usuario -->
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <span>Nombre de Usuario</span>
+                        <span class="required-indicator">● Requerido</span>
+                    </label>
+                    <div class="input-container">
+                        <input 
+                            id="username"
+                            asp-for="LoginDTO.NombreUsuario"
+                            type="text"
+                            class="form-input"
+                            placeholder="Ingrese su usuario"
+                            autocomplete="username"
+                            required
+                            aria-required="true" />
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <span asp-validation-for="LoginDTO.NombreUsuario" class="validation-error"></span>
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <span>Contraseña</span>
+                        <span class="required-indicator">● Requerido</span>
+                    </label>
+                    <div class="input-container">
+                        <input 
+                            id="password"
+                            asp-for="LoginDTO.Contrasenia"
+                            type="password"
+                            class="form-input"
+                            placeholder="Ingrese su contraseña"
+                            autocomplete="current-password"
+                            required
+                            aria-required="true" />
+                        <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
+                            <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <span asp-validation-for="LoginDTO.Contrasenia" class="validation-error"></span>
+                </div>
+
+                <!-- Botón Submit -->
+                <button type="submit" class="submit-button" id="submitButton">
+                    <span class="button-content" id="buttonContent">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Iniciar Sesión</span>
+                    </span>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="form-footer">
+                <p class="help-text">
+                    ¿Necesita asistencia? 
+                    <a href="#" class="help-link">Contactar al administrador</a>
+                </p>
+                <div class="ssl-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+                    </svg>
+                    <span>Conexión Segura SSL</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================
+            // GENERACIÓN DE PARTÍCULAS DINÁMICAS
+            // ============================================
+            const particleSystem = document.getElementById('particleSystem');
+            const particleTypes = ['particle-blue', 'particle-purple', 'particle-cyan'];
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = `particle ${particleTypes[i % particleTypes.length]}`;
+                particle.style.animationDelay = `${(i * 2)}s`;
+                particleSystem.appendChild(particle);
+            }
+
+            // ============================================
+            // TOGGLE PASSWORD VISIBILITY
+            // ============================================
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (togglePassword && passwordInput && eyeIcon) {
+                togglePassword.addEventListener('click', function() {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    
+                    if (isPassword) {
+                        eyeIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        `;
+                        this.setAttribute('aria-label', 'Ocultar contraseña');
+                    } else {
+                        eyeIcon.innerHTML = `
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        `;
+                        this.setAttribute('aria-label', 'Mostrar contraseña');
+                    }
+                });
+            }
+
+            // ============================================
+            // FORM SUBMISSION HANDLER
+            // ============================================
+            const loginForm = document.getElementById('loginForm');
+            const submitButton = document.getElementById('submitButton');
+            const buttonContent = document.getElementById('buttonContent');
+
+            if (loginForm && submitButton && buttonContent) {
+                loginForm.addEventListener('submit', function(e) {
+                    if (submitButton.disabled) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    const username = document.getElementById('username');
+                    const password = document.getElementById('password');
+                    let isValid = true;
+
+                    // Validar username
+                    if (!username.value.trim()) {
+                        username.style.borderColor = '#dc2626';
+                        if (isValid) username.focus();
+                        isValid = false;
+                    }
+
+                    // Validar password
+                    if (!password.value.trim()) {
+                        password.style.borderColor = '#dc2626';
+                        if (isValid) password.focus();
+                        isValid = false;
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Mostrar estado de carga
+                    submitButton.disabled = true;
+                    buttonContent.innerHTML = `
+                        <span class="loading-spinner"></span>
+                        <span>Verificando...</span>
+                    `;
+
+                    // Timeout para restaurar el botón si hay error
+                    setTimeout(function() {
+                        if (submitButton.disabled) {
+                            submitButton.disabled = false;
+                            buttonContent.innerHTML = `
+                                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                </svg>
+                                <span>Iniciar Sesión</span>
+                            `;
+                        }
+                    }, 10000);
+                });
+            }
+
+            // ============================================
+            // LIMPIAR ERRORES AL ESCRIBIR
+            // ============================================
+            const formInputs = document.querySelectorAll('.form-input');
+            formInputs.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    this.style.borderColor = '';
+                });
+            });
+
+            // ============================================
+            // AUTO FOCUS EN PRIMER INPUT
+            // ============================================
+            window.addEventListener('load', function() {
+                const firstInput = document.getElementById('username');
+                if (firstInput && !firstInput.value) {
+                    setTimeout(function() {
+                        firstInput.focus();
+                    }, 500);
+                }
+            });
+
+            // ============================================
+            // PREVENIR ESPACIOS EN USERNAME
+            // ============================================
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text');
+                    this.value = text.trim();
+                });
+            }
+
+            // ============================================
+            // EFECTO PARALLAX SUTIL
+            // ============================================
+            document.addEventListener('mousemove', function(e) {
+                const moveX = (e.clientX - window.innerWidth / 2) / 80;
+                const moveY = (e.clientY - window.innerHeight / 2) / 80;
+                
+                document.querySelectorAll('.feature-card').forEach(function(card, index) {
+                    const speed = 1 + (index * 0.15);
+                    card.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+                });
+            });
+
+            // ============================================
+            // CONSOLE LOG (DESARROLLO)
+            // ============================================
+            console.log('%c🚀 Sauna Kalixto Login System', 'color: #2563eb; font-size: 16px; font-weight: bold;');
+            console.log('%cVersión: 2.0 | Optimizado y Reorganizado', 'color: #10b981; font-size: 12px;');
+        })();
+    </script>
+}

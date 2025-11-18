@@ -1,0 +1,140 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication.Cookies
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sauna Kalixto</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="font-sans antialiased" style="background-color: var(--background); color: var(--foreground);">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="flex h-screen" style="background-color: var(--background);">
+            <!-- Sidebar Modernizado -->
+            <div class="w-64 lg:w-72 xl:w-80 flex-shrink-0" style="background-color: var(--card);">
+                <div class="h-full flex flex-col shadow-lg" style="border-color: var(--border);">
+                    <!-- Logo Section -->
+                    <div class="p-6 border-b" style="border-color: var(--border);">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl shadow-md gradient-animate">
+                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-lg font-bold" style="color: var(--foreground);">Sauna Kalixto</h1>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Sistema de Gestión</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <nav class="flex-1 p-4 space-y-2">
+                        <a asp-page="/Dashboard" 
+                           class="nav-item @(ViewContext.RouteData.Values["page"]?.ToString() == "/Dashboard" ? "nav-item-active" : "nav-item-inactive")">
+                            <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                            </svg>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+
+                        <a asp-page="/Usuarios/Index" 
+                           class="nav-item @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Usuarios") == true ? "nav-item-active" : "nav-item-inactive")">
+                            <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            <span class="font-medium">Usuarios</span>
+                        </a>
+                        
+                        <a asp-page="/Clientes/Index" 
+                           class="nav-item @(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Clientes") == true ? "nav-item-active" : "nav-item-inactive")">
+                            <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            <span class="font-medium">Clientes</span>
+                        </a>
+                    </nav>
+                    
+                    <!-- User Profile Section -->
+                    <div class="p-4 border-t" style="border-color: var(--border);">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style="background-color: var(--primary);">
+                                <span class="text-white font-medium text-sm">
+                                    @User.FindFirstValue(ClaimTypes.GivenName)?.Substring(0, 1).ToUpper()
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium truncate" style="color: var(--foreground);">@User.FindFirstValue(ClaimTypes.GivenName)</p>
+                                <p class="text-xs" style="color: var(--muted-foreground);">@User.FindFirstValue(ClaimTypes.Role)</p>
+                            </div>
+                        </div>
+                        <form asp-page="/Auth/Logout" method="get" class="w-full">
+                            <button type="submit" class="w-full nav-item nav-item-logout">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                </svg>
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- Top Bar -->
+                <div class="border-b shadow-sm" style="background-color: var(--card); border-color: var(--border);">
+                    <div class="max-w-screen-2xl mx-auto px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl lg:text-3xl font-bold" style="color: var(--foreground);">@ViewData["Title"]</h2>
+                                <p class="text-sm lg:text-base mt-1" style="color: var(--muted-foreground);">@ViewData["Description"]</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="hidden sm:block text-right">
+                                    <p class="text-sm font-medium" style="color: var(--foreground);">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
+                                    <p class="text-xs" style="color: var(--muted-foreground);">@DateTime.Now.ToString("HH:mm")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Content -->
+                <main class="flex-1 overflow-x-hidden overflow-y-auto" style="background-color: var(--background);">
+                    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="mb-6 p-4 rounded-lg border-l-4 shadow-sm" style="background-color: var(--chart-2-05); border-color: var(--chart-2);">
+                                <div class="flex items-center">
+                                    <svg class="h-5 w-5 flex-shrink-0" style="color: var(--chart-2);" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium" style="color: var(--chart-2);">@TempData["SuccessMessage"]</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @RenderBody()
+                    </div>
+                </main>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Layout para páginas sin autenticación -->
+        @RenderBody()
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,231 @@
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    var usuarioNombre = User?.Identity?.Name ?? "Usuario";
+    var usuarioRol = User?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Usuario";
+}
+
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sauna Kalixto</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProyectoSaunaKalixto.Web.styles.css" asp-append-version="true" />
+</head>
+<body class="h-full overflow-hidden" style="background-color: var(--background); color: var(--foreground);">
+    <div class="flex h-full">
+        <!-- Sidebar estilo shadcn -->
+        <aside class="w-64 flex flex-col flex-shrink-0 border-r" style="background-color: var(--card); border-color: var(--border);">
+            <!-- Logo -->
+            <div class="p-4 border-b" style="border-color: var(--border);">
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-md" style="background-color: var(--primary);">
+                        <span class="text-white font-bold text-sm">SK</span>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-semibold" style="color: var(--foreground);">Sauna Kalixto</h1>
+                        <p class="text-xs" style="color: var(--muted-foreground);">Panel Administrativo</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+                <!-- DASHBOARD - Siempre visible para todos -->
+                <a href="/Dashboard" 
+                   class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage == "/Dashboard" ? "active-link" : "inactive-link")">
+                    <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Dashboard
+                </a>
+
+                <!-- Separador -->
+                <div class="pt-2"></div>
+
+                <!-- OPERACIONES - Todos los roles -->
+                <div class="pb-2">
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--muted-foreground);">Operaciones</p>
+                </div>
+
+                <a asp-page="/CuentasConsumos/Index" 
+                   class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/CuentasConsumos") ? "active-link" : "inactive-link")">
+                    <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Cuentas y Consumos
+                </a>
+
+                <a asp-page="/PagosComprobar/Index" 
+                   class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/PagosComprobar") ? "active-link" : "inactive-link")">
+                    <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Pagos y Comprobar
+                </a>
+
+                <a asp-page="/Clientes/Index" 
+                   class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Clientes") ? "active-link" : "inactive-link")">
+                    <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Clientes
+                </a>
+
+                <!-- FINANZAS E INVENTARIO - Solo Admin y Administrador -->
+                @if (usuarioRol == "Administrador" || usuarioRol == "Admin")
+                {
+                    <div class="pt-4 pb-2">
+                        <p class="px-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--muted-foreground);">Finanzas e Inventario</p>
+                    </div>
+
+                    <a asp-page="/CajaFlujo/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/CajaFlujo") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Caja y Flujo de Caja
+                    </a>
+
+                    <a asp-page="/Inventario/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Inventario") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        Inventario
+                    </a>
+
+                    <a asp-page="/Egresos/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Egresos") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                        </svg>
+                        Egresos
+                    </a>
+
+                    <!-- REPORTES - Solo Admin -->
+                    <div class="pt-4 pb-2">
+                        <p class="px-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--muted-foreground);">Reportes</p>
+                    </div>
+
+                    <a asp-page="/Reportes/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Reportes") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Reportes y Estadísticas
+                    </a>
+
+                    <!-- CONFIGURACIÓN - Solo Admin -->
+                    <div class="pt-4 pb-2">
+                        <p class="px-3 text-xs font-semibold uppercase tracking-wider" style="color: var(--muted-foreground);">Configuración</p>
+                    </div>
+
+                    <a asp-page="/Usuarios/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Usuarios") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        Usuarios
+                    </a>
+
+                    <a asp-page="/Promociones/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Promociones") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        Promociones
+                    </a>
+                }
+
+            </nav>
+
+            <!-- User + Logout -->
+            <div class="border-t p-3 space-y-2" style="border-color: var(--border);">
+                <div class="flex items-center space-x-2 px-2 py-1.5">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium text-white" style="background-color: var(--primary);">
+                        @usuarioNombre.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-medium truncate" style="color: var(--foreground);">@usuarioNombre</p>
+                        <p class="text-xs truncate" style="color: var(--muted-foreground);">@usuarioRol</p>
+                    </div>
+                </div>
+                <form method="get" asp-page="/Auth/Logout" class="w-full">
+                    <button type="submit" class="flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors" 
+                            style="color: var(--muted-foreground);"
+                            onmouseover="this.style.backgroundColor='var(--destructive)'; this.style.color='white';"
+                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--muted-foreground)';">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden" style="background-color: var(--background);">
+            <!-- Top Header Simple -->
+            <header class="border-b px-6 py-4 flex-shrink-0" style="border-color: var(--border);">
+                <h1 class="text-2xl font-semibold tracking-tight" style="color: var(--foreground);">@ViewData["Title"]</h1>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 overflow-y-auto">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/modal.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Modal Container Global -->
+    <div id="crudModal" class="modal-backdrop hidden" onclick="Modal.closeOnBackdrop(event, 'crudModal')">
+        <div class="modal-content" onclick="event.stopPropagation();">
+            <div id="modalContent">
+                <!-- El contenido se carga dinámicamente aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Reactivar -->
+    <div id="confirmModal" class="modal-backdrop hidden" onclick="Modal.closeOnBackdrop(event, 'confirmModal')">
+        <div class="modal-content max-w-md" onclick="event.stopPropagation();">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold" style="color: var(--foreground);" id="confirmTitle">
+                    Confirmar acción
+                </h3>
+                <button type="button" onclick="Modal.close('confirmModal')" class="modal-close-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="color: var(--foreground);">¿Estás seguro de realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="Modal.close('confirmModal')" 
+                        class="px-4 py-2 text-sm font-medium rounded-md transition-colors" 
+                        style="border: 1px solid var(--border); color: var(--foreground);">
+                    Cancelar
+                </button>
+                <button type="button" id="confirmButton"
+                        class="px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                        style="background-color: var(--primary);">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

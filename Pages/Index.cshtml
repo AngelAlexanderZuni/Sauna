@@ -1,0 +1,18 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Redirigiendo...";
+}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <h2 class="text-xl font-semibold text-gray-700">Redirigiendo al sistema...</h2>
+        <p class="text-gray-500 mt-2">Por favor espere</p>
+    </div>
+</div>
+
+<script>
+    // Redirigir inmediatamente al login
+    window.location.href = '/Auth/Login';
+</script>

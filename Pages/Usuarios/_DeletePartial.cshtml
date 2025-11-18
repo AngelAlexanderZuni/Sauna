@@ -1,0 +1,98 @@
+@model ProyectoSaunaKalixto.Web.Pages.Usuarios.DeleteModel
+
+<form method="post" asp-page-handler="Delete" asp-route-id="@Model.Usuario.NombreUsuario">
+    <!-- Modal Header -->
+    <div class="modal-header">
+        <h3 class="text-lg font-semibold" style="color: var(--foreground);">
+            Desactivar Usuario
+        </h3>
+        <button type="button" onclick="Modal.close('crudModal')" class="modal-close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+        <div class="p-4 rounded-md mb-4" style="background-color: oklch(from var(--destructive) l c h / 0.1); border: 1px solid var(--destructive);">
+            <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" style="color: var(--destructive);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <h4 class="font-medium mb-1" style="color: var(--destructive);">¿Estás seguro?</h4>
+                    <p class="text-sm mb-2" style="color: var(--foreground);">
+                        <strong>Eliminación Lógica:</strong> El usuario será desactivado pero NO se eliminará de la base de datos.
+                        Los datos se conservan para auditoría, reportes y análisis.
+                    </p>
+                    <p class="text-sm flex items-center" style="color: var(--muted-foreground);">
+                        <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Puedes reactivar este usuario más tarde desde la vista de "Usuarios Inactivos".
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                    <span class="font-medium" style="color: var(--muted-foreground);">Nombre de Usuario:</span>
+                </div>
+                <div style="color: var(--foreground);">
+                    @Model.Usuario.NombreUsuario
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                    <span class="font-medium" style="color: var(--muted-foreground);">Correo:</span>
+                </div>
+                <div style="color: var(--foreground);">
+                    @(string.IsNullOrEmpty(Model.Usuario.Correo) ? "No registrado" : Model.Usuario.Correo)
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                    <span class="font-medium" style="color: var(--muted-foreground);">Rol:</span>
+                </div>
+                <div style="color: var(--foreground);">
+                    @Model.Usuario.RolNombre
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                    <span class="font-medium" style="color: var(--muted-foreground);">Estado:</span>
+                </div>
+                <div>
+                    <span class="px-2 py-1 text-xs rounded-full" 
+                          style="@(Model.Usuario.Activo ? "background-color: oklch(from var(--chart-2) l c h / 0.2); color: var(--chart-2);" : "background-color: oklch(from var(--destructive) l c h / 0.2); color: var(--destructive);")">
+                        @(Model.Usuario.Activo ? "Activo" : "Inactivo")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 rounded-md text-sm" style="background-color: oklch(from var(--muted) l c h / 0.5); color: var(--muted-foreground);">
+            <strong>Nota:</strong> Al desactivar este usuario, no podrá iniciar sesión en el sistema. Puedes reactivarlo más tarde editando su estado.
+        </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="px-4 py-2 text-sm font-medium rounded-md transition-colors" 
+                style="border: 1px solid var(--border); color: var(--foreground);">
+            Cancelar
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
+                style="background-color: var(--destructive);">
+            Desactivar Usuario
+        </button>
+    </div>
+</form>

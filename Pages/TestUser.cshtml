@@ -1,0 +1,37 @@
+@page
+@model ProyectoSaunaKalixto.Web.Pages.TestUserModel
+@{
+    ViewData["Title"] = "Información de Usuario";
+}
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">Información de Usuario</h1>
+            
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Información General</h2>
+                <pre class="bg-gray-100 p-4 rounded-md text-sm">@Model.UserInfo</pre>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Claims</h2>
+                <div class="bg-gray-100 p-4 rounded-md">
+                    @foreach (var claim in Model.Claims)
+                    {
+                        <div class="text-sm mb-1">@claim</div>
+                    }
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <a href="/Dashboard" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                    Volver al Dashboard
+                </a>
+                <a href="/Usuarios" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Ir a Usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
