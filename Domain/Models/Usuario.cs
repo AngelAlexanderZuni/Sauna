@@ -6,11 +6,12 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
     [Table("Usuario")]
     public class Usuario
     {
-        // No hay columna idUsuario en tu base de datos
-        // Usaremos un enfoque diferente para el ID
-        
+        [Key]
+        [Column("idUsuario")]
+        public int IdUsuario { get; set; }
+
+        [Required]
         [Column("nombreUsuario")]
-        [Key] // Usamos nombreUsuario como clave primaria
         [StringLength(50)]
         public string NombreUsuario { get; set; } = string.Empty;
 
@@ -35,12 +36,11 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("activo")]
         public bool Activo { get; set; } = true;
 
-        // No hay fechaCreacion en tu base de datos
         [NotMapped]
         public DateTime? FechaRegistro { get; set; }
         
-        // Agregamos una propiedad de ID artificial para compatibilidad
+        // Propiedad de navegación
         [NotMapped]
-        public int UsuarioID { get; set; }
+        public string Nombre => NombreCompleto ?? NombreUsuario;
     }
 }

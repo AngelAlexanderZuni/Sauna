@@ -37,6 +37,21 @@
         --grad-angle: 135deg;
     }
 
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        overflow-x: hidden; /* AGREGAR */
+        overflow-y: auto;   /* AGREGAR */
+    }
+
+    body.modal-open { 
+        overflow: hidden; 
+    }
+
+    /* AGREGAR: Prevenir conflictos de scroll */
+    html {
+        overflow-y: scroll;
+        scroll-behavior: smooth;
+    }
     * {
         box-sizing: border-box;
     }
@@ -49,14 +64,62 @@
     /* =========================
        LAYOUT GENERAL
     ==========================*/
-    .container-inventory {
-        height: calc(100vh - 60px);
+        .container-inventory {
+        height: 100%;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow: hidden; 
         background: radial-gradient(circle at top left, #eef2ff 0, #f9fafb 40%, #f3f4f6 100%);
         animation: bgShift 14s ease-in-out infinite alternate;
     }
+
+    /* =========================
+   AUTOCOMPLETE SUGERENCIAS
+==========================*/
+.suggest-box {
+    position: relative;
+}
+
+.suggest-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 100000 !important; /* Mayor que el modal */
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    max-height: 240px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    margin-top: 0.25rem;
+}
+
+.suggest-item {
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--surface-dark);
+    transition: all 0.15s ease;
+}
+
+.suggest-item:last-child {
+    border-bottom: none;
+}
+
+.suggest-item:hover,
+.suggest-item.active {
+    background: var(--primary-soft);
+    color: white;
+}
+
+.suggest-item strong {
+    color: var(--primary);
+}
+
+.suggest-item:hover strong {
+    color: white;
+}
 
     /* =========================
        HEADER COMPACTO PREMIUM
@@ -391,9 +454,11 @@
     ==========================*/
     .content-area {
         flex: 1;
-        overflow-y: auto;
+        overflow-y: auto; /* Mantener esto */
+        overflow-x: hidden; /* Agregar esta línea */
         padding: 1rem 1.5rem 1.25rem;
         background: transparent;
+        min-height: 0; /* AGREGAR esta línea - es crítica para el flex scroll */
     }
 
     .content-area::-webkit-scrollbar {
@@ -1509,7 +1574,7 @@
                 </svg>
             </button>
         </div>
-        <form method="post" asp-page-handler="AjustarStock">
+        <form id="formAjustarStock" method="post" asp-page-handler="AjustarStock">
             <div class="modal-body">
                 <input type="hidden" id="ajustarProductoId" name="id">
 
@@ -1521,17 +1586,28 @@
 
                 <div class="form-group">
                     <label class="form-label">Cantidad <span class="required">*</span></label>
-                    <input type="number" name="cantidad" required min="1" value="1" class="form-input" style="text-align: center; font-size: 1.25rem; font-weight: 700;">
+                    <input type="number" id="ajustarCantidad" name="cantidad" required min="1" value="1" class="form-input" style="text-align: center; font-size: 1.25rem; font-weight: 700;">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Tipo de Movimiento <span class="required">*</span></label>
                     <input type="hidden" name="tipo" id="ajustarTipo" value="entrada">
                     <div class="type-selector">
-                        <input type="radio" id="rbEntradaAjuste" name="tipoAjuste" value="entrada" checked onchange="seleccionarTipoAjuste('entrada')" style="display:none">
-                        <label for="rbEntradaAjuste" class="type-btn entrada active" id="lblEntradaAjuste">Entrada</label>
-                        <input type="radio" id="rbSalidaAjuste" name="tipoAjuste" value="salida" onchange="seleccionarTipoAjuste('salida')" style="display:none">
-                        <label for="rbSalidaAjuste" class="type-btn salida" id="lblSalidaAjuste">Salida</label>
+                        <input type="radio" id="rbEntradaAjuste" name="tipoRadio" value="entrada" checked style="display:none">
+                        <label for="rbEntradaAjuste" class="type-btn entrada active" id="lblEntradaAjuste">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                            </svg>
+                            Entrada
+                        </label>
+                        
+                        <input type="radio" id="rbSalidaAjuste" name="tipoRadio" value="salida" style="display:none">
+                        <label for="rbSalidaAjuste" class="type-btn salida" id="lblSalidaAjuste">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
+                            </svg>
+                            Salida
+                        </label>
                     </div>
                 </div>
             </div>
@@ -1668,14 +1744,18 @@ function abrirModalCrear(e) {
 
 function abrirModalAjustarStock(e, id, nombre, stock) {
     if (e) { e.preventDefault?.(); e.stopPropagation?.(); e.stopImmediatePropagation?.(); }
+    
     return openInCrud('#tplAjustarStock', (root) => {
         const setText = (sel, val) => { const el = root.querySelector(sel); if (el) el.textContent = val; };
         const setVal = (sel, val) => { const el = root.querySelector(sel); if (el) el.value = val; };
         
+        // Establecer valores
         setVal('#ajustarProductoId', id);
         setText('#productoNombreStock', nombre);
         setText('#stockActualDisplay', stock);
+        setVal('#ajustarCantidad', '1');
         
+        // Inicializar tipo
         const tipo = root.querySelector('#ajustarTipo'); 
         if (tipo) tipo.value = 'entrada';
         
@@ -1687,22 +1767,55 @@ function abrirModalAjustarStock(e, id, nombre, stock) {
         // Pasar root al inicializar
         seleccionarTipoAjuste('entrada', root);
         
-        // Pasar root en los event listeners
-        root.querySelector('#lblEntradaAjuste')?.addEventListener('click', () => seleccionarTipoAjuste('entrada', root));
-        root.querySelector('#lblSalidaAjuste')?.addEventListener('click', () => seleccionarTipoAjuste('salida', root));
-        rbE?.addEventListener('change', () => seleccionarTipoAjuste('entrada', root));
-        rbS?.addEventListener('change', () => seleccionarTipoAjuste('salida', root));
+        // Agregar event listeners para cambiar tipo
+        const lblEntrada = root.querySelector('#lblEntradaAjuste');
+        const lblSalida = root.querySelector('#lblSalidaAjuste');
         
-        setTimeout(() => root.querySelector('input[name="cantidad"]')?.focus(), 10);
+        if (lblEntrada) {
+            lblEntrada.addEventListener('click', function() {
+                if (rbE) rbE.checked = true;
+                if (rbS) rbS.checked = false;
+                seleccionarTipoAjuste('entrada', root);
+            });
+        }
+        
+        if (lblSalida) {
+            lblSalida.addEventListener('click', function() {
+                if (rbS) rbS.checked = true;
+                if (rbE) rbE.checked = false;
+                seleccionarTipoAjuste('salida', root);
+            });
+        }
+        
+        if (rbE) {
+            rbE.addEventListener('change', function() {
+                if (this.checked) seleccionarTipoAjuste('entrada', root);
+            });
+        }
+        
+        if (rbS) {
+            rbS.addEventListener('change', function() {
+                if (this.checked) seleccionarTipoAjuste('salida', root);
+            });
+        }
+        
+        // Focus en cantidad
+        setTimeout(() => {
+            const cantInput = root.querySelector('#ajustarCantidad');
+            cantInput?.focus();
+            cantInput?.select();
+        }, 150);
     });
 }
 
 function abrirModalNuevoMovimiento(e) {
     if (e) { e.preventDefault?.(); e.stopPropagation?.(); e.stopImmediatePropagation?.(); }
+    
     return openInCrud('#tplNuevoMovimiento', (root) => {
-        // Pasar root a la función
+        // Inicializar tipo
         seleccionarTipoNuevo('entrada', root);
         
+        // Event listeners para tipo
         root.querySelector('#lblEntradaNuevo')?.addEventListener('click', () => seleccionarTipoNuevo('entrada', root));
         root.querySelector('#lblSalidaNuevo')?.addEventListener('click', () => seleccionarTipoNuevo('salida', root));
         
@@ -1710,51 +1823,178 @@ function abrirModalNuevoMovimiento(e) {
         const rbNS = root.querySelector('#rbSalidaNuevo');
         rbNE?.addEventListener('change', () => seleccionarTipoNuevo('entrada', root));
         rbNS?.addEventListener('change', () => seleccionarTipoNuevo('salida', root));
+        
+        // Inicializar fecha
+        const fecha = root.querySelector('#nuevoMovFecha');
         if (fecha) {
             const d = new Date();
             const iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
             fecha.value = iso;
         }
+        
+        // Referencias a elementos
         const buscar = root.querySelector('#nuevoMovProductoBuscar');
         const sugList = root.querySelector('#nuevoMovSugList');
         const hiddenId = root.querySelector('#nuevoMovProductoId');
-        const allItems = Array.from(root.querySelectorAll('#nuevoMovAll li')).map(li => ({ id: li.getAttribute('data-id'), text: li.getAttribute('data-text') || '', pcompra: li.getAttribute('data-pcompra') || '', pventa: li.getAttribute('data-pventa') || '' }));
         const costo = root.querySelector('#nuevoMovCostoUnitario');
         const cant = root.querySelector('#nuevoMovCantidad');
         const total = root.querySelector('#nuevoMovTotal');
+        
+        // Cargar todos los productos disponibles
+        const allItems = Array.from(root.querySelectorAll('#nuevoMovAll li')).map(li => ({
+            id: li.getAttribute('data-id'),
+            text: li.getAttribute('data-text') || '',
+            pcompra: li.getAttribute('data-pcompra') || '',
+            pventa: li.getAttribute('data-pventa') || ''
+        }));
+        
+        console.log('✅ Productos cargados:', allItems.length); // DEBUG
+        
+        // Calcular total
         const calc = () => {
             const c = parseFloat(cant?.value || '0');
             const u = parseFloat(costo?.value || '0');
             if (total) total.textContent = 'S/ ' + (isNaN(c)||isNaN(u) ? '0.00' : (c*u).toFixed(2));
         };
+        
+        // Mostrar sugerencias
         const showSug = (items) => {
-            if (!sugList) return;
-            if (!items.length) { sugList.style.display = 'none'; sugList.innerHTML=''; return; }
-            sugList.innerHTML = items.map(it => `<div class="suggest-item" data-id="${it.id}" data-pcompra="${it.pcompra}" data-pventa="${it.pventa}" style="padding:.5rem .75rem; cursor:pointer;">${it.text}</div>`).join('');
+            console.log('📋 Mostrando sugerencias:', items.length); // DEBUG
+            
+            if (!sugList) {
+                console.error('❌ sugList no encontrado');
+                return;
+            }
+            
+            if (!items.length) {
+                sugList.style.display = 'none';
+                sugList.innerHTML = '';
+                return;
+            }
+            
+            sugList.innerHTML = items.map(it => 
+                `<div class="suggest-item" data-id="${it.id}" data-pcompra="${it.pcompra}" data-pventa="${it.pventa}">
+                    ${it.text}
+                </div>`
+            ).join('');
+            
             sugList.style.display = 'block';
+            
+            // Agregar eventos click a cada item
             sugList.querySelectorAll('.suggest-item').forEach(el => {
-                el.addEventListener('click', () => {
-                    const id = el.getAttribute('data-id');
-                    const text = el.textContent || '';
-                    const pcompra = el.getAttribute('data-pcompra') || '';
-                    const pventa = el.getAttribute('data-pventa') || '';
-                    if (hiddenId) hiddenId.value = id;
-                    if (hiddenId) { hiddenId.dataset.pcompra = pcompra; hiddenId.dataset.pventa = pventa; }
+                el.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const text = this.textContent.trim();
+                    const pcompra = this.getAttribute('data-pcompra') || '';
+                    const pventa = this.getAttribute('data-pventa') || '';
+                    
+                    console.log('✅ Producto seleccionado:', text); // DEBUG
+                    
+                    if (hiddenId) {
+                        hiddenId.value = id;
+                        hiddenId.dataset.pcompra = pcompra;
+                        hiddenId.dataset.pventa = pventa;
+                    }
                     if (buscar) buscar.value = text;
                     if (costo && pcompra) costo.value = pcompra;
+                    
                     sugList.style.display = 'none';
                     calc();
                 });
             });
         };
-        buscar?.addEventListener('input', () => {
-            const q = (buscar.value || '').toLowerCase();
-            const filtered = q ? allItems.filter(x => x.text.toLowerCase().includes(q)) : [];
-            showSug(filtered);
-        });
+        
+        // Buscar con debounce
+        const fetchSug = debounce(async () => {
+            const q = (buscar?.value || '').trim();
+            
+            console.log('🔍 Buscando:', q); // DEBUG
+            
+            if (!q) {
+                showSug([]);
+                return;
+            }
+            
+            try {
+                const params = new URLSearchParams();
+                params.set('term', q);
+                
+                const res = await fetch(`?handler=BuscarProductos&${params.toString()}`);
+                const data = await res.json();
+                
+                console.log('📦 Respuesta API:', data); // DEBUG
+                
+                if (!data.success) {
+                    showSug([]);
+                    return;
+                }
+                
+                const items = (data.productos || []).map(p => ({
+                    id: p.idProducto,
+                    text: `${p.nombre} (${p.codigo}) - Stock: ${p.stockActual}`,
+                    pcompra: p.precioCompra,
+                    pventa: p.precioVenta
+                }));
+                
+                showSug(items);
+            } catch (err) {
+                console.error('❌ Error en búsqueda:', err); // DEBUG
+                
+                // Fallback: filtrar localmente
+                const ql = q.toLowerCase();
+                const filtered = allItems.filter(x => x.text.toLowerCase().includes(ql));
+                showSug(filtered);
+            }
+        }, 250);
+        
+        // EVENT LISTENER PRINCIPAL
+        if (buscar) {
+            console.log('✅ Agregando event listener al input'); // DEBUG
+            
+            buscar.addEventListener('input', function() {
+                console.log('⌨️ Input detectado:', this.value); // DEBUG
+                fetchSug();
+            });
+            
+            // Navegación con teclado
+            buscar.addEventListener('keydown', (e) => {
+                if (!sugList || sugList.style.display === 'none') return;
+                
+                const items = Array.from(sugList.querySelectorAll('.suggest-item'));
+                if (!items.length) return;
+                
+                let idx = items.findIndex(i => i.classList.contains('active'));
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    idx = Math.min(items.length - 1, idx + 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    idx = Math.max(0, idx - 1);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    (items[idx] || items[0]).click();
+                    return;
+                } else if (e.key === 'Escape') {
+                    sugList.style.display = 'none';
+                    return;
+                }
+                
+                items.forEach(i => i.classList.remove('active'));
+                if (idx >= 0) items[idx].classList.add('active');
+                else items[0].classList.add('active');
+            });
+        }
+        
+        // Calcular cuando cambia cantidad o costo
         cant?.addEventListener('input', calc);
         costo?.addEventListener('input', calc);
+        
+        // Calcular inicial
         calc();
+        
+        // Focus al input de búsqueda
+        setTimeout(() => buscar?.focus(), 150);
     });
 }
 

@@ -1,1 +1,12 @@
 node_modules
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log
+/.trae/
+ProyetoSaunaKalixto.Tests/bin/
+ProyetoSaunaKalixto.Tests/obj/

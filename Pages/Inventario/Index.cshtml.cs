@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using ProyectoSaunaKalixto.Web.Data;
 using ProyectoSaunaKalixto.Web.Domain.Models;
 using ProyectoSaunaKalixto.Web.Domain.Repositories;
+using System.Linq;
+using System.Security.Claims; 
 
 namespace ProyectoSaunaKalixto.Web.Pages.Inventario
 {
@@ -441,6 +443,33 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
             }
         }
 
+        public async Task<IActionResult> OnGetBuscarProductosAsync(string? term, bool includeInactive = false, int limit = 10)
+        {
+            try
+            {
+                var lista = await _productosRepo.SearchAsync(term, null, null, includeInactive);
+                var productos = lista
+                    .Take(limit)
+                    .Select(p => new
+                    {
+                        idProducto = p.IdProducto,
+                        nombre = p.Nombre,
+                        codigo = p.Codigo,
+                        precioCompra = p.PrecioCompra,
+                        precioVenta = p.PrecioVenta,
+                        stockActual = p.StockActual
+                    })
+                    .ToList();
+
+                return new JsonResult(new { success = true, productos });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al buscar productos: {ex.Message}");
+                return new JsonResult(new { success = false, message = "Error al buscar productos" });
+            }
+        }
+
         public async Task<IActionResult> OnGetMovimientosProductoAsync(int id)
         {
             try
@@ -516,98 +545,147 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
         #region Gestión de Movimientos
 
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> OnPostAjustarStockAsync(
-            int id, 
-            int cantidad, 
-            string tipo,
-            decimal? costoUnitario,
-            string? observacion,
-            DateTime? fecha)
+public async Task<IActionResult> OnPostAjustarStockAsync(
+    int id, 
+    int cantidad, 
+    string tipo,
+    decimal? costoUnitario = null,
+    string? observacion = null,
+    DateTime? fecha = null)
+{
+    try
+    {
+        Console.WriteLine("=== INICIO AJUSTAR STOCK ===");
+        Console.WriteLine($"ID Producto: {id}");
+        Console.WriteLine($"Cantidad: {cantidad}");
+        Console.WriteLine($"Tipo: {tipo}");
+
+        // 1. OBTENER USUARIO VÁLIDO
+        var primerUsuario = await _context.Usuarios
+            .Where(u => u.Activo)
+            .OrderBy(u => u.IdUsuario)
+            .FirstOrDefaultAsync();
+        
+        if (primerUsuario == null)
         {
-            try
-            {
-                var producto = await _context.Productos.FindAsync(id);
-                if (producto == null)
-                {
-                    TempData["Error"] = "Producto no encontrado";
-                    TempData["ErrorModal"] = "ajustar";
-                    await CargarDatosAsync();
-                    ModalToShow = "ajustar";
-                    ProductoIdToEdit = id;
-                    return Page();
-                }
-
-                if (cantidad <= 0)
-                {
-                    TempData["Error"] = "La cantidad debe ser mayor a cero";
-                    TempData["ErrorModal"] = "ajustar";
-                    await CargarDatosAsync();
-                    ModalToShow = "ajustar";
-                    ProductoIdToEdit = id;
-                    return Page();
-                }
-
-                var tipoNormalizado = tipo.ToLower();
-                var esEntrada = tipoNormalizado == "entrada" || tipoNormalizado == "aumentar";
-
-                // Ajustar stock
-                if (esEntrada)
-                {
-                    producto.StockActual += cantidad;
-                }
-                else
-                {
-                    if (producto.StockActual < cantidad)
-                    {
-                        if (TempData != null) {
-                            TempData["Error"] = $"Stock insuficiente. Stock actual: {producto.StockActual}";
-                            TempData["ErrorModal"] = "ajustar";
-                        }
-                        await CargarDatosAsync();
-                        ModalToShow = "ajustar";
-                        ProductoIdToEdit = id;
-                        return Page();
-                    }
-                    producto.StockActual -= cantidad;
-                }
-
-                // Obtener o crear tipo de movimiento
-                var tipoMovimientoNombre = esEntrada ? "Entrada" : "Salida";
-                var tipoMovimiento = await _tiposRepo.GetOrCreateAsync(tipoMovimientoNombre);
-
-                // Registrar movimiento
-                var unit = (costoUnitario.HasValue && costoUnitario.Value > 0) ? costoUnitario.Value : producto.PrecioCompra;
-                var movimiento = new MovimientoInventario
-                {
-                    IdProducto = producto.IdProducto,
-                    IdTipoMovimiento = tipoMovimiento.IdTipoMovimiento,
-                    Cantidad = cantidad,
-                    Fecha = fecha ?? DateTime.Now,
-                    Observacion = string.IsNullOrWhiteSpace(observacion) ? $"Ajuste de stock - {tipoMovimientoNombre}" : observacion.Trim(),
-                    CostoUnitario = unit,
-                    CostoTotal = unit * cantidad,
-                    IdUsuario = 0
-                };
-
-                _context.MovimientoInventario.Add(movimiento);
-                await _context.SaveChangesAsync();
-
-                if (TempData != null) TempData["Success"] = $"Stock ajustado exitosamente. Nuevo stock: {producto.StockActual}";
-                return RedirectToPage();
-            }
-            catch (Exception ex)
-            {
-                if (TempData != null) {
-                    TempData["Error"] = "Error al ajustar el stock. Por favor, intente nuevamente";
-                    TempData["ErrorModal"] = "ajustar";
-                }
-                Console.WriteLine($"Error al ajustar stock: {ex.Message}");
-                await CargarDatosAsync();
-                ModalToShow = "ajustar";
-                ProductoIdToEdit = id;
-                return Page();
-            }
+            Console.WriteLine("❌ ERROR: No hay usuarios activos en la base de datos");
+            TempData["Error"] = "No hay usuarios activos en el sistema. Contacte al administrador.";
+            return RedirectToPage();
         }
+
+        int idUsuario = primerUsuario.IdUsuario;
+        Console.WriteLine($"✅ Usando usuario: {primerUsuario.Nombre} (ID: {idUsuario})");
+
+        // 2. Validar producto
+        var producto = await _context.Productos.FindAsync(id);
+        if (producto == null)
+        {
+            Console.WriteLine("❌ ERROR: Producto no encontrado");
+            TempData["Error"] = "Producto no encontrado";
+            return RedirectToPage();
+        }
+
+        Console.WriteLine($"✅ Producto encontrado: {producto.Nombre}");
+        Console.WriteLine($"   Stock actual: {producto.StockActual}");
+
+        // 3. Validar cantidad
+        if (cantidad <= 0)
+        {
+            Console.WriteLine("❌ ERROR: Cantidad inválida");
+            TempData["Error"] = "La cantidad debe ser mayor a cero";
+            return RedirectToPage();
+        }
+
+        // 4. Determinar tipo de movimiento
+        var tipoNormalizado = (tipo ?? "entrada").ToLower().Trim();
+        var esEntrada = tipoNormalizado == "entrada" || tipoNormalizado == "aumentar";
+
+        Console.WriteLine($"Tipo normalizado: '{tipoNormalizado}'");
+        Console.WriteLine($"Es entrada: {esEntrada}");
+
+        // 5. Validar stock suficiente para salidas
+        if (!esEntrada && producto.StockActual < cantidad)
+        {
+            Console.WriteLine($"❌ ERROR: Stock insuficiente ({producto.StockActual} < {cantidad})");
+            TempData["Error"] = $"Stock insuficiente. Stock actual: {producto.StockActual}";
+            return RedirectToPage();
+        }
+
+        // 6. Obtener o crear tipo de movimiento
+        var tipoMovimientoNombre = esEntrada ? "Entrada" : "Salida";
+        Console.WriteLine($"Buscando tipo de movimiento: '{tipoMovimientoNombre}'");
+        
+        var tipoMovimiento = await _tiposRepo.GetOrCreateAsync(tipoMovimientoNombre);
+        Console.WriteLine($"✅ Tipo de movimiento obtenido: ID {tipoMovimiento.IdTipoMovimiento}");
+
+        // 7. Calcular nuevo stock
+        var stockAnterior = producto.StockActual;
+        if (esEntrada)
+        {
+            producto.StockActual += cantidad;
+        }
+        else
+        {
+            producto.StockActual -= cantidad;
+        }
+
+        Console.WriteLine($"Stock: {stockAnterior} → {producto.StockActual}");
+
+        // 8. Calcular costo
+        var unit = (costoUnitario.HasValue && costoUnitario.Value > 0) 
+            ? costoUnitario.Value 
+            : producto.PrecioCompra;
+        
+        Console.WriteLine($"Costo unitario: {unit}");
+        Console.WriteLine($"Costo total: {unit * cantidad}");
+
+        // 9. Crear movimiento
+        var movimiento = new MovimientoInventario
+        {
+            IdProducto = producto.IdProducto,
+            IdTipoMovimiento = tipoMovimiento.IdTipoMovimiento,
+            Cantidad = cantidad,
+            Fecha = fecha ?? DateTime.Now,
+            Observacion = string.IsNullOrWhiteSpace(observacion) 
+                ? $"Ajuste de stock - {tipoMovimientoNombre}" 
+                : observacion.Trim(),
+            CostoUnitario = unit,
+            CostoTotal = unit * cantidad,
+            IdUsuario = idUsuario
+        };
+
+        Console.WriteLine($"Creando movimiento con idUsuario: {idUsuario}");
+        _context.MovimientoInventario.Add(movimiento);
+
+        // 10. Guardar cambios
+        Console.WriteLine("Guardando cambios en la base de datos...");
+        await _context.SaveChangesAsync();
+
+        Console.WriteLine("✅ Stock ajustado exitosamente");
+        Console.WriteLine("=== FIN AJUSTAR STOCK ===");
+
+        TempData["Success"] = $"Stock ajustado exitosamente. Nuevo stock: {producto.StockActual}";
+        return RedirectToPage();
+    }
+    catch (DbUpdateException dbEx)
+    {
+        Console.WriteLine($"❌ ERROR DE BASE DE DATOS:");
+        Console.WriteLine($"   Message: {dbEx.Message}");
+        Console.WriteLine($"   InnerException: {dbEx.InnerException?.Message}");
+        
+        var innerMsg = dbEx.InnerException?.Message ?? dbEx.Message;
+        TempData["Error"] = $"Error de base de datos: {innerMsg}";
+        return RedirectToPage();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ ERROR GENERAL:");
+        Console.WriteLine($"   Message: {ex.Message}");
+        
+        TempData["Error"] = $"Error al ajustar el stock: {ex.Message}";
+        return RedirectToPage();
+    }
+}
 
         public async Task<IActionResult> OnPostActualizarMovimientoAsync(
             int idProducto, 
