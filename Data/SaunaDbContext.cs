@@ -27,7 +27,8 @@ namespace ProyectoSaunaKalixto.Web.Data
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.ToTable("Usuario");
-                entity.HasKey(e => e.NombreUsuario);
+                entity.HasKey(e => e.IdUsuario);
+                entity.Property(e => e.IdUsuario).HasColumnName("idUsuario");
                 entity.Property(e => e.NombreUsuario).IsRequired().HasMaxLength(50).HasColumnName("nombreUsuario");
                 entity.Property(e => e.ContraseniaHash).IsRequired().HasColumnName("contraseniaHash");
                 entity.Property(e => e.IdRol).HasColumnName("idRol");

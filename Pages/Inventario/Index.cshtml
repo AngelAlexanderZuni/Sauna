@@ -489,6 +489,12 @@
         box-shadow: var(--shadow);
     }
 
+    .table-scroll {
+        max-height: min(68vh, calc(100vh - 290px));
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
     .table-premium {
         width: 100%;
         border-collapse: collapse;
@@ -498,6 +504,13 @@
     .table-premium thead {
         background: linear-gradient(to bottom, #f9fafb, #eff3ff);
         border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .table-premium thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: linear-gradient(to bottom, #f9fafb, #eff3ff);
     }
 
     .table-premium th {
@@ -1269,6 +1282,7 @@
         <!-- Tabla -->
         <div class="content-area">
             <div class="table-container">
+                <div class="table-scroll">
                 <table class="table-premium">
                     <thead>
                         <tr>
@@ -1383,6 +1397,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

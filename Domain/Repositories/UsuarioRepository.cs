@@ -20,7 +20,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Repositories
 
         public async Task<Usuario?> GetByIdAsync(string nombreUsuario)
         {
-            return await _context.Usuarios.FindAsync(nombreUsuario);
+            return await _context.Usuarios.FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario);
         }
 
         public async Task<Usuario> AddAsync(Usuario usuario)
@@ -48,7 +48,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Repositories
 
         public async Task<bool> ExistsAsync(string nombreUsuario)
         {
-            return await _context.Usuarios.FindAsync(nombreUsuario) != null;
+            return await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario);
         }
 
         public async Task<bool> ExistsByNombreUsuarioAsync(string nombreUsuario)

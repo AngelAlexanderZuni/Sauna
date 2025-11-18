@@ -63,9 +63,13 @@ namespace ProyectoSaunaKalixto.Web.Pages.Usuarios
                     return Page();
                 }
 
-                await _usuarioService.CreateUsuarioAsync(Usuario);
+                var created = await _usuarioService.CreateUsuarioAsync(Usuario);
                 
                 TempData["SuccessMessage"] = "Usuario creado exitosamente.";
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return new JsonResult(new { success = true, message = "Usuario creado exitosamente" });
+                }
                 return RedirectToPage("./Index");
             }
             catch (ArgumentException ex)

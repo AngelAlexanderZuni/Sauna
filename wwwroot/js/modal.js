@@ -37,7 +37,7 @@ const Modal = {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const openModal = document.querySelector('.modal-backdrop:not(.hidden)');
-        if (openModal) {
+        if (openModal && openModal.id !== 'crudModal') {
             Modal.close(openModal.id);
         }
     }

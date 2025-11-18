@@ -486,8 +486,30 @@
                     });
 
                     if (response.ok) {
-                        Modal.close('crudModal');
-                        location.reload();
+                        const contentType = response.headers.get('content-type') || '';
+                        if (response.redirected) {
+                            Modal.close('crudModal');
+                            window.location.href = response.url;
+                            return;
+                        }
+                        if (contentType.includes('application/json')) {
+                            const result = await response.json();
+                            if (result.success) {
+                                mostrarToast(result.message || 'Usuario creado exitosamente', 'success');
+                                Modal.close('crudModal');
+                                setTimeout(() => location.reload(), 1500);
+                            } else {
+                                mostrarToast(result.message || 'Operación no completada', 'error');
+                            }
+                        } else {
+                            const html = await response.text();
+                            if (html.includes('<html') || html.includes('<!DOCTYPE')) {
+                                Modal.close('crudModal');
+                                location.reload();
+                            } else {
+                                document.getElementById('modalContent').innerHTML = html;
+                            }
+                        }
                     } else {
                         const html = await response.text();
                         document.getElementById('modalContent').innerHTML = html;

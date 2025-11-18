@@ -32,7 +32,9 @@
                        maxlength="50"
                        pattern="[a-zA-Z0-9_\-]+"
                        title="Solo letras, números, guion bajo y guion medio"
-                       autocomplete="username" />
+                       autocomplete="username"
+                       onmousedown="event.stopPropagation()"
+                       onclick="event.stopPropagation()" />
                 <span asp-validation-for="Usuario.NombreUsuario" class="text-xs" style="color: var(--destructive);"></span>
             </div>
 
@@ -48,7 +50,9 @@
                        required
                        minlength="8"
                        maxlength="100"
-                       autocomplete="new-password" />
+                       autocomplete="new-password"
+                       onmousedown="event.stopPropagation()"
+                       onclick="event.stopPropagation()" />
                 <div class="mt-2 flex items-center">
                     <input id="togglePasswordCreateModal" type="checkbox" class="rounded mr-2" style="border-color: var(--border);" onclick="togglePasswordVisibility('Usuario_Contrasenia', this.checked)" />
                     <label for="togglePasswordCreateModal" class="text-xs" style="color: var(--foreground);">Mostrar contraseña</label>
@@ -69,7 +73,9 @@
                        required
                        maxlength="150"
                        placeholder="usuario@ejemplo.com"
-                       autocomplete="email" />
+                       autocomplete="email"
+                       onmousedown="event.stopPropagation()"
+                       onclick="event.stopPropagation()" />
                 <span asp-validation-for="Usuario.Correo" class="text-xs" style="color: var(--destructive);"></span>
             </div>
 
@@ -82,7 +88,9 @@
                         asp-items="Model.Roles"
                         class="w-full px-3 py-2 text-sm border rounded-md" 
                         style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
-                        required>
+                        required
+                        onmousedown="event.stopPropagation()"
+                        onclick="event.stopPropagation()">
                     <option value="">Seleccione un rol</option>
                 </select>
                 <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
@@ -91,7 +99,7 @@
             <!-- Activo -->
             <div>
                 <label class="flex items-center cursor-pointer">
-                    <input asp-for="Usuario.Activo" type="checkbox" class="rounded mr-2" style="border-color: var(--border);" checked />
+                    <input asp-for="Usuario.Activo" type="checkbox" class="rounded mr-2" style="border-color: var(--border);" checked onmousedown="event.stopPropagation()" onclick="event.stopPropagation()" />
                     <span class="text-sm font-medium" style="color: var(--foreground);">Usuario Activo</span>
                 </label>
             </div>
