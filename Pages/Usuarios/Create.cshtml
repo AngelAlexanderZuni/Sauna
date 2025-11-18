@@ -26,13 +26,17 @@
 
                     <div>
                         <label asp-for="Usuario.Correo" class="block text-sm font-medium text-foreground mb-1"></label>
-                        <input asp-for="Usuario.Correo" type="email" class="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground" />
+                        <input asp-for="Usuario.Correo" type="email" maxlength="150" class="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground" />
                         <span asp-validation-for="Usuario.Correo" class="text-destructive text-sm"></span>
                     </div>
 
                     <div>
                         <label asp-for="Usuario.Contrasenia" class="block text-sm font-medium text-foreground mb-1"></label>
-                        <input asp-for="Usuario.Contrasenia" type="password" class="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground" />
+                        <input asp-for="Usuario.Contrasenia" type="password" minlength="8" class="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground" />
+                        <div class="mt-2 flex items-center">
+                            <input id="togglePasswordCreatePage" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-input rounded" onclick="togglePasswordVisibility('Usuario_Contrasenia', this.checked)" />
+                            <label for="togglePasswordCreatePage" class="ml-2 block text-xs text-foreground">Mostrar contraseña</label>
+                        </div>
                         <span asp-validation-for="Usuario.Contrasenia" class="text-destructive text-sm"></span>
                     </div>
 

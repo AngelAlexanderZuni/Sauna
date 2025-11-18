@@ -93,6 +93,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Clientes
             {
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
+                    Response.StatusCode = 422;
                     return Partial("_EditPartial", this);
                 }
                 return Page();
@@ -108,6 +109,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Clientes
                     
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                     {
+                        Response.StatusCode = 422;
                         return Partial("_EditPartial", this);
                     }
                     return NotFound();
@@ -133,6 +135,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Clientes
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
+                    Response.StatusCode = 422;
                     return Partial("_EditPartial", this);
                 }
                 return Page();
@@ -144,6 +147,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Clientes
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
+                    Response.StatusCode = 422;
                     return Partial("_EditPartial", this);
                 }
                 return Page();

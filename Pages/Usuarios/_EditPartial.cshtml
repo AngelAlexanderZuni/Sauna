@@ -18,6 +18,7 @@
 <!-- Modal Body -->
 <form method="post" asp-page="./Edit">
     <input type="hidden" asp-for="Usuario.NombreUsuario" />
+    <input type="hidden" id="CambiarContrasenia" name="Usuario.CambiarContrasenia" value="false" />
     
     <div class="modal-body">
         <div class="grid grid-cols-1 gap-4">
@@ -43,12 +44,12 @@
                        type="password"
                        class="w-full px-3 py-2 text-sm border rounded-md" 
                        style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
-                       minlength="6"
+                       minlength="8"
                        maxlength="100"
                        placeholder="Dejar en blanco para mantener la actual"
-                       autocomplete="new-password" />
+                       autocomplete="new-password" oninput="document.getElementById('CambiarContrasenia').value = this.value.length > 0 ? 'true' : 'false'" />
                 <span asp-validation-for="Usuario.NuevaContrasenia" class="text-xs" style="color: var(--destructive);"></span>
-                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Mínimo 6 caracteres. Deja en blanco si no deseas cambiarla.</p>
+                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Mínimo 8 caracteres. Deja en blanco si no deseas cambiarla.</p>
             </div>
 
             <!-- Correo -->
@@ -61,7 +62,7 @@
                        class="w-full px-3 py-2 text-sm border rounded-md" 
                        style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
                        required
-                       maxlength="100"
+                       maxlength="150"
                        autocomplete="email" />
                 <span asp-validation-for="Usuario.Correo" class="text-xs" style="color: var(--destructive);"></span>
             </div>
@@ -77,9 +78,6 @@
                         style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
                         required>
                     <option value="">Seleccione un rol</option>
-                </select>
-                <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
-            </div>
                 </select>
                 <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
             </div>
@@ -113,17 +111,5 @@
     </div>
 </form>
 
-<script>
-    // Detectar si se ingresa una nueva contraseña y marcar el flag
-    document.addEventListener('DOMContentLoaded', function() {
-        const passwordInput = document.querySelector('input[name="Usuario.NuevaContrasenia"]');
-        const cambiarContraseniaFlag = document.getElementById('CambiarContrasenia');
-        
-        if (passwordInput && cambiarContraseniaFlag) {
-            passwordInput.addEventListener('input', function() {
-                cambiarContraseniaFlag.value = this.value.length > 0 ? 'true' : 'false';
-            });
-        }
-    });
-</script>
+<!-- Script removido; el flag se maneja inline con oninput para compatibilidad con HTML inyectado en modal -->
 

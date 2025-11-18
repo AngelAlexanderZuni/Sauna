@@ -46,11 +46,15 @@
                        class="w-full px-3 py-2 text-sm border rounded-md" 
                        style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
                        required
-                       minlength="6"
+                       minlength="8"
                        maxlength="100"
                        autocomplete="new-password" />
+                <div class="mt-2 flex items-center">
+                    <input id="togglePasswordCreateModal" type="checkbox" class="rounded mr-2" style="border-color: var(--border);" onclick="togglePasswordVisibility('Usuario_Contrasenia', this.checked)" />
+                    <label for="togglePasswordCreateModal" class="text-xs" style="color: var(--foreground);">Mostrar contraseña</label>
+                </div>
                 <span asp-validation-for="Usuario.Contrasenia" class="text-xs" style="color: var(--destructive);"></span>
-                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Mínimo 6 caracteres</p>
+                <p class="text-xs mt-1" style="color: var(--muted-foreground);">Mínimo 8 caracteres, incluye mayúscula, minúscula, número y símbolo</p>
             </div>
 
             <!-- Correo -->
@@ -63,7 +67,7 @@
                        class="w-full px-3 py-2 text-sm border rounded-md" 
                        style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
                        required
-                       maxlength="100"
+                       maxlength="150"
                        placeholder="usuario@ejemplo.com"
                        autocomplete="email" />
                 <span asp-validation-for="Usuario.Correo" class="text-xs" style="color: var(--destructive);"></span>
@@ -75,12 +79,11 @@
                     Rol <span style="color: var(--destructive);">*</span>
                 </label>
                 <select asp-for="Usuario.IdRol" 
+                        asp-items="Model.Roles"
                         class="w-full px-3 py-2 text-sm border rounded-md" 
                         style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
                         required>
                     <option value="">Seleccione un rol</option>
-                    <option value="5">Administrador</option>
-                    <option value="2">Cajero</option>
                 </select>
                 <span asp-validation-for="Usuario.IdRol" class="text-xs" style="color: var(--destructive);"></span>
             </div>

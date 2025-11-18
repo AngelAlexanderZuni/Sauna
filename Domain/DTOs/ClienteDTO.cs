@@ -45,7 +45,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
 
         [StringLength(100, ErrorMessage = "El correo no puede exceder 100 caracteres")]
         [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido")]
-        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "El correo debe tener un formato válido (ejemplo@dominio.com)")]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@(?:gmail\.com|outlook\.com|hotmail\.com|yahoo\.com|icloud\.com|live\.com|proton\.me)$", ErrorMessage = "El correo debe pertenecer a dominios confiables (gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com, live.com, proton.me)")]
         [Display(Name = "Correo Electrónico")]
         public string? Correo { get; set; }
 
@@ -90,7 +90,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
 
         [StringLength(100, ErrorMessage = "El correo no puede exceder 100 caracteres")]
         [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido")]
-        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "El correo debe tener un formato válido (ejemplo@dominio.com)")]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@(?:gmail\.com|outlook\.com|hotmail\.com|yahoo\.com|icloud\.com|live\.com|proton\.me)$", ErrorMessage = "El correo debe pertenecer a dominios confiables (gmail.com, outlook.com, hotmail.com, yahoo.com, icloud.com, live.com, proton.me)")]
         [Display(Name = "Correo Electrónico")]
         public string? Correo { get; set; }
 

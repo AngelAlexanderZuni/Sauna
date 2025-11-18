@@ -40,6 +40,11 @@ namespace ProyectoSaunaKalixto.Web.Pages.Usuarios
             if (!ModelState.IsValid)
             {
                 await CargarRoles();
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    Response.StatusCode = 422;
+                    return Partial("_CreatePartial", this);
+                }
                 return Page();
             }
 
@@ -50,6 +55,11 @@ namespace ProyectoSaunaKalixto.Web.Pages.Usuarios
                 {
                     ModelState.AddModelError("Usuario.NombreUsuario", "Ya existe un usuario con este nombre.");
                     await CargarRoles();
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        Response.StatusCode = 422;
+                        return Partial("_CreatePartial", this);
+                    }
                     return Page();
                 }
 
@@ -57,6 +67,30 @@ namespace ProyectoSaunaKalixto.Web.Pages.Usuarios
                 
                 TempData["SuccessMessage"] = "Usuario creado exitosamente.";
                 return RedirectToPage("./Index");
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validación al crear usuario");
+                var message = ex.Message ?? "Error de validación";
+                if (message.Contains("rol", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError("Usuario.IdRol", message);
+                }
+                else if (message.Contains("contraseñ", StringComparison.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError("Usuario.Contrasenia", message);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, message);
+                }
+                await CargarRoles();
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    Response.StatusCode = 422;
+                    return Partial("_CreatePartial", this);
+                }
+                return Page();
             }
             catch (Exception ex)
             {

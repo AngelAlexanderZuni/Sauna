@@ -14,14 +14,16 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
     public class AuthenticationService : IAuthService
     {
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IRolRepository _rolRepository;
         private static readonly Dictionary<string, LoginAttempt> _loginAttempts = new();
         private static readonly object _lockObject = new();
         private const int MaxLoginAttempts = 5;
         private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
-        public AuthenticationService(IUsuarioRepository usuarioRepository)
+        public AuthenticationService(IUsuarioRepository usuarioRepository, IRolRepository rolRepository)
         {
             _usuarioRepository = usuarioRepository;
+            _rolRepository = rolRepository;
         }
 
         private class LoginAttempt
@@ -65,14 +67,9 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
             // Autenticación exitosa - limpiar intentos
             ClearLoginAttempts(nombreUsuario);
 
-            // Mapear idRol a nombre de rol
-            string rolNombre = usuario.IdRol switch
-            {
-                1 => "Administrador",
-                5 => "Administrador",  // Admin tiene IdRol 5 en la BD actual
-                2 => "Cajero",
-                _ => "Cajero"
-            };
+            // Obtener nombre real de rol desde la BD
+            var rol = await _rolRepository.GetByIdAsync(usuario.IdRol);
+            string rolNombre = rol?.Nombre ?? "Usuario";
 
             Console.WriteLine($"Usuario autenticado exitosamente: {usuario.NombreUsuario}, Rol: {rolNombre}");
 
@@ -139,14 +136,9 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
                 return null;
             }
 
-            // Mapear idRol a nombre de rol
-            string rolNombre = usuario.IdRol switch
-            {
-                1 => "Administrador",
-                5 => "Administrador",  // Admin tiene IdRol 5 en la BD actual
-                2 => "Cajero",
-                _ => "Cajero"
-            };
+            // Obtener nombre real de rol desde la BD
+            var rol = await _rolRepository.GetByIdAsync(usuario.IdRol);
+            string rolNombre = rol?.Nombre ?? "Usuario";
 
             return new UsuarioDTO
             {

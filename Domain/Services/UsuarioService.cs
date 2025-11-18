@@ -82,6 +82,13 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
             // Validar contraseña segura
             ValidarContraseniaSegura(usuarioDTO.Contrasenia);
 
+            // Validar rol existente
+            var rolValido = await _rolRepository.GetByIdAsync(usuarioDTO.IdRol);
+            if (rolValido == null)
+            {
+                throw new ArgumentException("Debe seleccionar un rol válido");
+            }
+
             var usuario = new Usuario
             {
                 NombreUsuario = usuarioDTO.NombreUsuario,
@@ -151,6 +158,13 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             // Sanitización de datos
             usuarioDTO.Correo = usuarioDTO.Correo?.Trim().ToLower();
+
+            // Validar rol existente
+            var rolValido = await _rolRepository.GetByIdAsync(usuarioDTO.IdRol);
+            if (rolValido == null)
+            {
+                throw new ArgumentException("Debe seleccionar un rol válido");
+            }
 
             usuario.Correo = usuarioDTO.Correo;
             usuario.IdRol = usuarioDTO.IdRol;
