@@ -7,25 +7,37 @@
 
 <div class="flex-1 overflow-auto">
     <div class="p-6 space-y-6">
-        <div class="card">
+        <div class="card" id="reportCard">
             <div class="border-b px-6 py-4" style="border-color: var(--border);">
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-semibold" style="color: var(--foreground);">Reportes y Estadísticas</h2>
-                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Resumen de inventario</p>
+                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Inventario, ingresos, egresos y top servicios</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <a href="?handler=ExportInventario" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" style="background-color: var(--primary);">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Exportar Inventario (CSV)
-                        </a>
-                    </div>
+                    <div class="flex items-center space-x-2"></div>
                 </div>
             </div>
 
             <div class="px-6 py-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="label">Desde</label>
+                        <input id="inputDesde" value="@Model.Desde?.ToString("yyyy-MM-dd")" type="date" class="input" />
+                    </div>
+                    <div>
+                        <label class="label">Hasta</label>
+                        <input id="inputHasta" value="@Model.Hasta?.ToString("yyyy-MM-dd")" type="date" class="input" />
+                    </div>
+                    <div class="flex items-end justify-end">
+                        <button type="button" id="exportBtn" onclick="exportPdf()" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" style="background-color: var(--primary);">
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2 2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Exportar Reporte (PDF)
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
                         <div class="text-xs" style="color: var(--muted-foreground);">Productos</div>
@@ -34,8 +46,8 @@
                     </div>
                     <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
                         <div class="text-xs" style="color: var(--muted-foreground);">Valor Total</div>
-                        <div class="text-2xl font-bold" style="color: var(--foreground);">S/ @Model.ValorTotalInventario.ToString("N2")</div>
-                        <div class="text-xs" style="color: var(--muted-foreground);">Costo: S/ @Model.ValorTotalCosto.ToString("N2")</div>
+                        <div class="text-2xl font-bold" style="color: var(--foreground);">S/ @String.Format("{0:N2}", Model.ValorTotalInventario)</div>
+                        <div class="text-xs" style="color: var(--muted-foreground);">Costo: S/ @String.Format("{0:N2}", Model.ValorTotalCosto)</div>
                     </div>
                     <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
                         <div class="text-xs" style="color: var(--muted-foreground);">Stock Bajo</div>
@@ -47,11 +59,32 @@
                     </div>
                     <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
                         <div class="text-xs" style="color: var(--muted-foreground);">Margen Estimado</div>
-                        <div class="text-2xl font-bold" style="color: var(--foreground);">S/ @(Model.ValorTotalInventario - Model.ValorTotalCosto).ToString("N2")</div>
+                        <div class="text-2xl font-bold" style="color: var(--foreground);">S/ @String.Format("{0:N2}", (Model.ValorTotalInventario - Model.ValorTotalCosto))</div>
                     </div>
                 </div>
 
-                <div class="rounded-lg border" style="border-color: var(--border); background: var(--card);">
+                <div id="reportContent">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
+                        <div class="text-xs" style="color: var(--muted-foreground);">Ingresos (Pagos)</div>
+                        <div id="ingresosVal" class="text-2xl font-bold" style="color: var(--foreground);">S/ 0.00</div>
+                        <div class="text-xs" style="color: var(--muted-foreground);">Rango aplicado</div>
+                    </div>
+                    <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
+                        <div class="text-xs" style="color: var(--muted-foreground);">Egresos (Gastos)</div>
+                        <div id="egresosVal" class="text-2xl font-bold" style="color: var(--foreground);">S/ 0.00</div>
+                        <div class="text-xs" style="color: var(--muted-foreground);">Rango aplicado</div>
+                    </div>
+                    <div class="p-4 rounded-lg border" style="border-color: var(--border); background: var(--card);">
+                        <div class="text-xs" style="color: var(--muted-foreground);">Utilidad (Ingresos - Egresos)</div>
+                        <div id="utilidadVal" class="text-2xl font-bold" style="color: var(--foreground);">S/ 0.00</div>
+                        <div class="text-xs" style="color: var(--muted-foreground);">Rango aplicado</div>
+                    </div>
+                </div>
+
+                
+
+                <div class="rounded-lg border mt-6" style="border-color: var(--border); background: var(--card);">
                     <div class="px-4 py-3 border-b" style="border-color: var(--border);">
                         <h3 class="text-sm font-semibold" style="color: var(--foreground);">Top 10 productos por movimientos</h3>
                     </div>
@@ -77,7 +110,235 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Gráficos (Chart.js CDN) fuera del contenido dinámico -->
+                <div id="chartsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="rounded-lg border p-4" style="border-color: var(--border); background: var(--card);">
+                        <h3 class="text-sm font-semibold mb-2" style="color: var(--foreground);">Top productos (cantidad movida)</h3>
+                        <canvas id="chartProductos" height="140"></canvas>
+                    </div>
+                    <div class="rounded-lg border p-4" style="border-color: var(--border); background: var(--card);">
+                        <h3 class="text-sm font-semibold mb-2" style="color: var(--foreground);">Top servicios (rango)</h3>
+                        <canvas id="chartServicios" height="140"></canvas>
+                    </div>
+                    
+                </div>
+
+                <div class="rounded-lg border mt-6" style="border-color: var(--border); background: var(--card);">
+                    <div class="px-4 py-3 border-b" style="border-color: var(--border);">
+                        <h3 class="text-sm font-semibold" style="color: var(--foreground);">Top 10 servicios por cantidad (rango)</h3>
+                    </div>
+                    <div class="table-scroll" style="max-height: 420px; overflow-y:auto;">
+                        <table class="w-full">
+                            <thead class="border-b" style="border-color: var(--border); background-color: var(--muted); position: sticky; top:0;">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium" style="color: var(--muted-foreground);">Servicio</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium" style="color: var(--muted-foreground);">Cantidad</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium" style="color: var(--muted-foreground);">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyTopServicios" class="divide-y" style="border-color: var(--border);"></tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function refreshReport() {
+            try {
+                const desde = document.getElementById('inputDesde').value;
+                const hasta = document.getElementById('inputHasta').value;
+                const qs = new URLSearchParams();
+                if (desde) qs.append('Desde', desde);
+                if (hasta) qs.append('Hasta', hasta);
+                const res = await fetch(`/Reportes/Index?handler=Data&${qs.toString()}`);
+                const json = await res.json();
+                document.getElementById('ingresosVal').textContent = `S/ ${Number(json.finanzas.ingresos).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                document.getElementById('egresosVal').textContent = `S/ ${Number(json.finanzas.egresos).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                document.getElementById('utilidadVal').textContent = `S/ ${Number(json.finanzas.utilidad).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+                const tbody = document.getElementById('tbodyTopServicios');
+                tbody.innerHTML = '';
+                if (!json.topServicios || json.topServicios.length === 0) {
+                    const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="3" class="px-6 py-8 text-center" style="color: var(--muted-foreground);">Sin servicios en el rango</td>`; tbody.appendChild(tr);
+                } else {
+                    json.topServicios.forEach(t => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td class='px-4 py-2' style='color: var(--foreground);'>${t.nombre}</td>
+                                        <td class='px-4 py-2 text-right' style='color: var(--foreground);'>${t.cantidad}</td>
+                                        <td class='px-4 py-2 text-right' style='color: var(--foreground);'>S/ ${Number(t.importe).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                }
+                
+                await updateCharts();
+            } catch (e) { console.error('Error refrescando reporte', e); }
+        }
+
+        document.getElementById('inputDesde').addEventListener('change', refreshReport);
+        document.getElementById('inputHasta').addEventListener('change', refreshReport);
+        window.addEventListener('DOMContentLoaded', refreshReport);
+        const labelsProductos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartProductoLabels));
+        const dataProductos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartProductoValues));
+        const labelsServicios = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartServicioLabels));
+        const dataServicios = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartServicioValues));
+
+        const baseGrid = 'rgba(229,231,235,0.5)';
+        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#4f46e5';
+        const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground') || '#6b7280';
+        const destructive = getComputedStyle(document.documentElement).getPropertyValue('--destructive') || '#ef4444';
+
+        const chartProductos = new Chart(document.getElementById('chartProductos'), {
+            type: 'bar',
+            data: { labels: labelsProductos, datasets: [{ label: 'Cantidad', data: dataProductos, backgroundColor: primary }] },
+            options: { scales: { y: { grid: { color: baseGrid }, beginAtZero: true }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+        });
+        const chartServicios = new Chart(document.getElementById('chartServicios'), {
+            type: 'bar',
+            data: { labels: labelsServicios, datasets: [{ label: 'Cantidad', data: dataServicios, backgroundColor: primary }] },
+            options: { scales: { y: { grid: { color: baseGrid }, beginAtZero: true }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+        });
+        // Finanzas diario: desactivado temporalmente
+
+        async function updateCharts() {
+            try {
+                const desde = document.getElementById('inputDesde').value;
+                const hasta = document.getElementById('inputHasta').value;
+                const qs = new URLSearchParams();
+                if (desde) qs.append('Desde', desde);
+                if (hasta) qs.append('Hasta', hasta);
+                const res = await fetch(`/Reportes/Index?handler=ChartData&${qs.toString()}`);
+                const json = await res.json();
+                chartProductos.data.labels = json.productoLabels; chartProductos.data.datasets[0].data = json.productoValues; chartProductos.update();
+                chartServicios.data.labels = json.servicioLabels; chartServicios.data.datasets[0].data = json.servicioValues; chartServicios.update();
+                // Finanzas diario: desactivado
+            } catch (e) { console.error('Error actualizando gráficos', e); }
+        }
+
+        document.getElementById('inputDesde').addEventListener('change', updateCharts);
+        document.getElementById('inputHasta').addEventListener('change', updateCharts);
+        // Primera sincronización para evitar parpadeo
+        updateCharts();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+        async function exportPdf() {
+            const exportBtn = document.getElementById('exportBtn');
+            let styleOverride = null;
+            
+            try {
+                exportBtn.disabled = true;
+                exportBtn.innerHTML = '<svg class="h-4 w-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Generando PDF...';
+                
+                // Inyectar estilos RGB completos para reemplazar oklch
+                styleOverride = document.createElement('style');
+                styleOverride.id = 'pdf-export-override';
+                styleOverride.innerHTML = `
+                    :root {
+                        --background: #ffffff !important;
+                        --foreground: #0f172a !important;
+                        --card: #ffffff !important;
+                        --card-foreground: #0f172a !important;
+                        --popover: #ffffff !important;
+                        --popover-foreground: #0f172a !important;
+                        --primary: #4f46e5 !important;
+                        --primary-foreground: #f5f3ff !important;
+                        --secondary: #f8fafc !important;
+                        --secondary-foreground: #1e293b !important;
+                        --muted: #f1f5f9 !important;
+                        --muted-foreground: #64748b !important;
+                        --accent: #f1f5f9 !important;
+                        --accent-foreground: #1e293b !important;
+                        --destructive: #ef4444 !important;
+                        --destructive-foreground: #fef2f2 !important;
+                        --border: #e2e8f0 !important;
+                        --input: #e2e8f0 !important;
+                        --ring: #6366f1 !important;
+                        --chart-1: #818cf8 !important;
+                        --chart-2: #6366f1 !important;
+                        --chart-3: #4f46e5 !important;
+                        --chart-4: #4338ca !important;
+                        --chart-5: #3730a3 !important;
+                    }
+                    #exportBtn {
+                        display: none !important;
+                    }
+                    input[type="date"] {
+                        -webkit-appearance: none !important;
+                        color: #0f172a !important;
+                        background-color: #ffffff !important;
+                        border: 1px solid #e2e8f0 !important;
+                    }
+                `;
+                document.head.appendChild(styleOverride);
+                
+                // Esperar para que los estilos se apliquen
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                const el = document.getElementById('reportCard');
+                
+                // Capturar el elemento
+                const canvas = await html2canvas(el, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    allowTaint: false,
+                    ignoreElements: (element) => {
+                        return element.tagName === 'SCRIPT' || element.id === 'exportBtn';
+                    }
+                });
+                
+                // Remover estilos override
+                if (styleOverride && styleOverride.parentNode) {
+                    document.head.removeChild(styleOverride);
+                    styleOverride = null;
+                }
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // 'l' = landscape (horizontal)
+                
+                const pageWidth = 297 - 20; // A4 horizontal width - margins
+                const pageHeight = 210 - 20; // A4 horizontal height - margins
+                const imgWidth = pageWidth;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 10;
+                
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight + 10;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                const fileName = `reporte_estadisticas_${new Date().toISOString().slice(0,10)}_${new Date().getHours()}${new Date().getMinutes()}.pdf`;
+                pdf.save(fileName);
+                
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = '<svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2 2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Exportar Reporte (PDF)';
+            } catch (e) { 
+                console.error('Error exportando PDF', e);
+                
+                // Limpiar estilos override si existen
+                if (styleOverride && styleOverride.parentNode) {
+                    document.head.removeChild(styleOverride);
+                }
+                
+                alert('Error al generar el PDF: ' + e.message);
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = '<svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2 2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Exportar Reporte (PDF)';
+            }
+        }
+    </script>
+}

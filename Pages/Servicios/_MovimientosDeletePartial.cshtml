@@ -1,0 +1,33 @@
+@model ProyectoSaunaKalixto.Web.Pages.Servicios.MovimientosDeleteModel
+
+<div class="modal-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold" style="color: var(--foreground);">Eliminar Movimiento</h2>
+            <p class="text-sm mt-1" style="color: var(--muted-foreground);">Esta acción no se puede deshacer.</p>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" class="p-2 rounded-md hover:bg-muted transition-colors">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<form method="post" asp-page="./MovimientosDelete">
+    <div class="modal-body">
+        <input asp-for="Detalle.IdDetalleServicio" type="hidden" />
+        <input asp-for="Detalle.IdServicio" type="hidden" />
+        <div class="space-y-2">
+            <p class="text-sm" style="color: var(--foreground);">ID: @Model.Detalle.IdDetalleServicio</p>
+            <p class="text-sm" style="color: var(--foreground);">Cuenta: @Model.Detalle.IdCuenta</p>
+            <p class="text-sm" style="color: var(--foreground);">Cantidad: @Model.Detalle.Cantidad</p>
+            <p class="text-sm" style="color: var(--foreground);">Precio: @Model.Detalle.PrecioUnitario.ToString("0.00")</p>
+            <p class="text-sm" style="color: var(--foreground);">Subtotal: @Model.Detalle.Subtotal.ToString("0.00")</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" onclick="Modal.close('crudModal')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" style="border: 1px solid var(--border); color: var(--foreground);">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-white" style="background-color: var(--destructive);">Eliminar</button>
+    </div>
+</form>

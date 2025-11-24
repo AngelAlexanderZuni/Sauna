@@ -1,0 +1,45 @@
+@model ProyectoSaunaKalixto.Web.Pages.Servicios.DetailsModel
+
+<div class="modal-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold" style="color: var(--foreground);">Detalles del Servicio</h2>
+            <p class="text-sm mt-1" style="color: var(--muted-foreground);">Información completa del servicio seleccionado</p>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" class="p-2 rounded-md hover:bg-muted transition-colors">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="modal-body">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <p class="text-xs" style="color: var(--muted-foreground);">Nombre</p>
+            <p class="text-sm font-medium" style="color: var(--foreground);">@Model.Servicio.Nombre</p>
+        </div>
+        <div>
+            <p class="text-xs" style="color: var(--muted-foreground);">Categoría</p>
+            <p class="text-sm font-medium" style="color: var(--foreground);">@(Model.Servicio.CategoriaServicio?.Nombre ?? "-")</p>
+        </div>
+        <div>
+            <p class="text-xs" style="color: var(--muted-foreground);">Precio</p>
+            <p class="text-sm font-medium" style="color: var(--foreground);">@Model.Servicio.Precio.ToString("0.00")</p>
+        </div>
+        <div>
+            <p class="text-xs" style="color: var(--muted-foreground);">Duración Estimada</p>
+            <p class="text-sm font-medium" style="color: var(--foreground);">@(Model.Servicio.DuracionEstimada?.ToString() ?? "-")</p>
+        </div>
+        <div class="md:col-span-2">
+            <p class="text-xs" style="color: var(--muted-foreground);">Estado</p>
+            <p class="text-sm font-medium" style="color: var(--foreground);">@(Model.Servicio.Activo ? "Activo" : "Inactivo")</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="button" onclick="Modal.close('crudModal')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" style="border: 1px solid var(--border); color: var(--foreground);">Cerrar</button>
+    <button type="button" onclick="loadEditServicioForm('@Model.Servicio.IdServicio')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-white" style="background-color: var(--primary);">Editar</button>
+</div>

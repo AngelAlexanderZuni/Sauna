@@ -22,6 +22,9 @@ builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IMovimientoInventarioRepository, MovimientoInventarioRepository>();
 builder.Services.AddScoped<ICategoriaProductoRepository, CategoriaProductoRepository>();
 builder.Services.AddScoped<ITipoMovimientoRepository, TipoMovimientoRepository>();
+builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
+builder.Services.AddScoped<ICategoriaServicioRepository, CategoriaServicioRepository>();
+builder.Services.AddScoped<IDetalleServicioRepository, DetalleServicioRepository>();
 
 // Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthenticationService>();

@@ -144,7 +144,7 @@ body::before {
             <p class="text-sm mt-1" style="color: var(--muted-foreground);">Bienvenido, @Model.UsuarioNombre — @Model.UsuarioRol</p>
         </div>
 
-        <button class="px-4 py-2 rounded-md text-white" style="background-color: var(--primary);">Registrar Cliente</button>
+        
     </div>
 
     <!-- TARJETAS -->
@@ -156,8 +156,8 @@ body::before {
         </div>
 
         <div class="card p-6">
-            <p class="text-sm" style="color: var(--muted-foreground);">Por vencer</p>
-            <h2 class="text-3xl font-bold" style="color: var(--foreground);">@Model.MembresiasPorVencer</h2>
+            <p class="text-sm" style="color: var(--muted-foreground);">Cuentas abiertas</p>
+            <h2 class="text-3xl font-bold" style="color: var(--foreground);">@Model.CuentasAbiertas</h2>
         </div>
 
         <div class="card p-6">
@@ -171,11 +171,23 @@ body::before {
         </div>
     </div>
 
-    <!-- GRAFICO -->
-    <div class="card p-6">
-        <h3 class="text-lg font-semibold mb-4" style="color: var(--foreground);">Visitantes</h3>
-        <div class="relative w-full" style="height: 380px; max-height: 380px;">
-            <canvas id="visitChart" class="w-full h-full"></canvas>
+    <!-- INGRESOS HOY -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-6">
+            <p class="text-sm" style="color: var(--muted-foreground);">Ingresos Hoy</p>
+            <h2 class="text-3xl font-bold" style="color: var(--foreground);">S/ @String.Format("{0:N2}", Model.IngresosHoy)</h2>
+        </div>
+        <div class="card p-6">
+            <p class="text-sm" style="color: var(--muted-foreground);">Egresos Hoy</p>
+            <h2 class="text-3xl font-bold" style="color: var(--foreground);">S/ @String.Format("{0:N2}", Model.EgresosHoy)</h2>
+        </div>
+    </div>
+
+    <!-- GRÁFICO INGRESOS ÚLTIMOS 7 DÍAS -->
+    <div class="card p-6" style="overflow:hidden;">
+        <h3 class="text-lg font-semibold mb-4" style="color: var(--foreground);">Ingresos últimos 7 días</h3>
+        <div class="relative w-full" style="height: 320px; max-height: 320px;">
+            <canvas id="ingresosChart" class="w-full h-full"></canvas>
         </div>
     </div>
 
@@ -186,29 +198,31 @@ body::before {
         <table class="w-full">
             <thead style="background-color: var(--muted);" class="text-left">
                 <tr>
+                    <th class="px-4 py-3 text-xs font-medium uppercase" style="color: var(--muted-foreground);">Fecha</th>
                     <th class="px-4 py-3 text-xs font-medium uppercase" style="color: var(--muted-foreground);">Cliente</th>
-                    <th class="px-4 py-3 text-xs font-medium uppercase" style="color: var(--muted-foreground);">Estado</th>
-                    <th class="px-4 py-3 text-xs font-medium uppercase" style="color: var(--muted-foreground);">Membresía</th>
-                    <th class="px-4 py-3 text-xs font-medium uppercase" style="color: var(--muted-foreground);">Vencimiento</th>
-                    <th class="px-4 py-3 text-right text-xs font-medium uppercase" style="color: var(--muted-foreground);">Acción</th>
+                    <th class="px-4 py-3 text-xs font-medium uppercase text-right" style="color: var(--muted-foreground);">Monto</th>
+                    <th class="px-4 py-3 text-right text-xs font-medium uppercase" style="color: var(--muted-foreground);">Cuenta</th>
                 </tr>
             </thead>
             <tbody style="background-color: var(--card);">
-                <tr class="border-t" style="border-color: var(--border);">
-                    <td class="px-4 py-3">John Doe</td>
-                    <td class="px-4 py-3" style="color: #10b981;">Activo</td>
-                    <td class="px-4 py-3">Premium</td>
-                    <td class="px-4 py-3">15/12/2024</td>
-                    <td class="px-4 py-3 text-right"><button class="text-sm px-3 py-1 rounded-md" style="background-color: var(--muted); color: var(--foreground);">Ver</button></td>
-                </tr>
-
-                <tr class="border-t" style="border-color: var(--border);">
-                    <td class="px-4 py-3">Alice Smith</td>
-                    <td class="px-4 py-3" style="color: #f59e0b;">Por vencer</td>
-                    <td class="px-4 py-3">Básica</td>
-                    <td class="px-4 py-3">20/11/2024</td>
-                    <td class="px-4 py-3 text-right"><button class="text-sm px-3 py-1 rounded-md" style="background-color: var(--muted); color: var(--foreground);">Ver</button></td>
-                </tr>
+                @if (!Model.PagosRecientes.Any())
+                {
+                    <tr class="border-t" style="border-color: var(--border);">
+                        <td colspan="4" class="px-4 py-4 text-center" style="color: var(--muted-foreground);">Sin pagos recientes</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var p in Model.PagosRecientes)
+                    {
+                        <tr class="border-t" style="border-color: var(--border);">
+                            <td class="px-4 py-3">@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="px-4 py-3">@p.Cliente</td>
+                            <td class="px-4 py-3 text-right">S/ @String.Format("{0:N2}", p.Monto)</td>
+                            <td class="px-4 py-3 text-right">@p.IdCuenta</td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>
@@ -220,45 +234,13 @@ body::before {
 
 <!-- ============== SCRIPTS ============== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-const ctx = document.getElementById('visitChart').getContext('2d');
-
-const neonGlow = ctx.createLinearGradient(0, 0, 0, 300);
-neonGlow.addColorStop(0, "rgba(167,139,250,0.9)");
-neonGlow.addColorStop(1, "rgba(167,139,250,0.03)");
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
-        datasets: [{
-            label: "Visitantes",
-            data: [120, 150, 180, 260, 290, 310, 280],
-            borderColor: "#c084fc",
-            backgroundColor: neonGlow,
-            fill: true,
-            borderWidth: 3,
-            tension: .45,
-            shadowColor: "#c084fc",
-        }]
-    },
-    options: {
-        plugins: {
-            legend: { display: false }
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: {
-                ticks: { color: "rgba(255,255,255,0.7)" },
-                grid: { display: false }
-            },
-            y: {
-                ticks: { color: "rgba(255,255,255,0.7)" },
-                grid: { color: "rgba(255,255,255,0.1)" }
-            }
-        }
-    }
-});
+    const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartFechas));
+    const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartIngresos));
+    const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary') || '#4f46e5';
+    new Chart(document.getElementById('ingresosChart'), {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Ingresos', data, borderColor: primary, tension: .3 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
 </script>

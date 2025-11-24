@@ -1,0 +1,63 @@
+@model ProyectoSaunaKalixto.Web.Pages.Servicios.EditModel
+
+<div class="modal-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold" style="color: var(--foreground);">Editar Servicio</h2>
+            <p class="text-sm mt-1" style="color: var(--muted-foreground);">Actualiza la información del servicio</p>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" class="p-2 rounded-md hover:bg-muted transition-colors">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<form method="post" asp-page="./Edit">
+    <div class="modal-body grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input asp-for="Servicio.IdServicio" type="hidden" />
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--foreground);">Nombre</label>
+            <input asp-for="Servicio.Nombre" minlength="3" maxlength="100" pattern="[A-Za-zÁÉÍÓÚáéíóúñÑüÜ0-9 ]{3,100}" class="w-full px-3 py-2 text-sm border rounded-md" style="border-color: var(--border); background-color: var(--background); color: var(--foreground);" required />
+            <span asp-validation-for="Servicio.Nombre" class="text-xs" style="color: var(--destructive);"></span>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--foreground);">Precio</label>
+            <input asp-for="Servicio.Precio" type="number" step="0.01" min="0.01" class="w-full px-3 py-2 text-sm border rounded-md" style="border-color: var(--border); background-color: var(--background); color: var(--foreground);" required />
+            <span asp-validation-for="Servicio.Precio" class="text-xs" style="color: var(--destructive);"></span>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--foreground);">Duración (min)</label>
+            <input asp-for="Servicio.DuracionEstimada" type="number" min="1" max="600" class="w-full px-3 py-2 text-sm border rounded-md" style="border-color: var(--border); background-color: var(--background); color: var(--foreground);" />
+            <span asp-validation-for="Servicio.DuracionEstimada" class="text-xs" style="color: var(--destructive);"></span>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-1" style="color: var(--foreground);">Categoría</label>
+            <select asp-for="Servicio.IdCategoriaServicio" required class="w-full px-3 py-2 text-sm border rounded-md" style="border-color: var(--border); background-color: var(--background); color: var(--foreground);">
+                @if (Model.Servicio.IdCategoriaServicio == null)
+                {
+                    <option value="" disabled selected>Seleccione una categoría</option>
+                }
+                else
+                {
+                    <option value="" disabled>Seleccione una categoría</option>
+                }
+                @foreach (var c in Model.Categorias)
+                {
+                    <option value="@c.IdCategoriaServicio" selected="@(Model.Servicio.IdCategoriaServicio == c.IdCategoriaServicio)">@c.Nombre</option>
+                }
+            </select>
+            <span asp-validation-for="Servicio.IdCategoriaServicio" class="text-xs" style="color: var(--destructive);"></span>
+        </div>
+        <div class="md:col-span-2">
+            <label class="inline-flex items-center text-sm" style="color: var(--foreground);">
+                <input asp-for="Servicio.Activo" type="checkbox" class="mr-2" /> Activo
+            </label>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" onclick="Modal.close('crudModal')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" style="border: 1px solid var(--border); color: var(--foreground);">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-white" style="background-color: var(--primary);">Guardar Cambios</button>
+    </div>
+</form>

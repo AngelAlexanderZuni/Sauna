@@ -1,0 +1,71 @@
+@model ProyectoSaunaKalixto.Web.Pages.Servicios.MovimientosModel
+
+<div class="modal-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-lg font-semibold" style="color: var(--foreground);">Movimientos</h2>
+            <p class="text-sm mt-1" style="color: var(--muted-foreground);">Servicio: @Model.Servicio.Nombre · @(Model.Servicio.CategoriaServicio?.Nombre ?? "-")</p>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" class="p-2 rounded-md hover:bg-muted transition-colors">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="modal-body">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="border-b" style="border-color: var(--border); background-color: var(--muted);">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Cantidad</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Precio</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Subtotal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Cuenta</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y" style="border-color: var(--border);">
+                @if (Model.Detalles.Any())
+                {
+                    foreach (var d in Model.Detalles)
+                    {
+                        <tr class="hover:bg-muted/50 transition-colors">
+                            <td class="px-6 py-3">@d.Cuenta?.FechaHoraCreacion.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="px-6 py-3">@d.Cantidad</td>
+                            <td class="px-6 py-3">@d.PrecioUnitario.ToString("0.00")</td>
+                            <td class="px-6 py-3">@d.Subtotal.ToString("0.00")</td>
+                            <td class="px-6 py-3">@d.IdCuenta</td>
+                            <td class="px-6 py-3 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <button type="button" onclick="loadMovimientoEdit('@d.IdDetalleServicio')" class="inline-flex items-center p-1.5 rounded hover:bg-muted transition-colors" style="color: var(--muted-foreground);" title="Editar">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" onclick="loadMovimientoDelete('@d.IdDetalleServicio')" class="inline-flex items-center p-1.5 rounded hover:bg-red-50 transition-colors text-red-600" title="Eliminar">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center" style="color: var(--muted-foreground);">Sin movimientos</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button type="button" onclick="Modal.close('crudModal')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors" style="border: 1px solid var(--border); color: var(--foreground);">Cerrar</button>
+</div>

@@ -100,6 +100,14 @@
                         Inventario
                     </a>
 
+                    <a asp-page="/Servicios/Index" 
+                       class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Servicios") ? "active-link" : "inactive-link")">
+                        <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M5 8h14" />
+                        </svg>
+                        Servicios
+                    </a>
+
                     <a asp-page="/Egresos/Index" 
                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors @(currentPage.StartsWith("/Egresos") ? "active-link" : "inactive-link")">
                         <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
