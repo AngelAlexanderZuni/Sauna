@@ -30,7 +30,8 @@ namespace ProyectoSaunaKalixto.Web.Data
         public DbSet<TipoComprobante> TiposComprobante { get; set; }
         public DbSet<TipoEgreso> TiposEgreso { get; set; }
         public DbSet<Pago> Pagos { get; set; }
-        public DbSet<ProgramaFidelizacion> ProgramasFidelizacion { get; set; }
+        public DbSet<TipoDescuento> TiposDescuento { get; set; }
+        public DbSet<Promociones> Promociones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -225,6 +226,7 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.Property(e => e.IdEstadoCuenta).HasColumnName("idEstadoCuenta");
                 entity.Property(e => e.IdUsuarioCreador).HasColumnName("idUsuarioCreador");
                 entity.Property(e => e.IdCliente).HasColumnName("idCliente");
+                entity.Property(e => e.IdPromocion).HasColumnName("idPromocion");
                 entity.HasOne(e => e.UsuarioCreador)
                       .WithMany()
                       .HasForeignKey(e => e.IdUsuarioCreador)
@@ -237,6 +239,10 @@ namespace ProyectoSaunaKalixto.Web.Data
                       .WithMany()
                       .HasForeignKey(e => e.IdEstadoCuenta)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Promocion)
+                      .WithMany(p => p.Cuentas)
+                      .HasForeignKey(e => e.IdPromocion)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Comprobante
@@ -324,16 +330,32 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.Property(e => e.Nombre).HasColumnName("nombre").HasMaxLength(50).IsRequired();
             });
 
-            // ProgramaFidelizacion
-            modelBuilder.Entity<ProgramaFidelizacion>(entity =>
+            // TipoDescuento
+            modelBuilder.Entity<TipoDescuento>(entity =>
             {
-                entity.ToTable("ProgramaFidelizacion");
-                entity.HasKey(e => e.IdPrograma);
-                entity.Property(e => e.IdPrograma).HasColumnName("idPrograma");
-                entity.Property(e => e.VisitasParaDescuento).HasColumnName("visitasParaDescuento");
-                entity.Property(e => e.PorcentajeDescuento).HasColumnName("porcentajeDescuento").HasColumnType("decimal(5,2)");
-                entity.Property(e => e.DescuentoCumpleanos).HasColumnName("descuentoCumpleanos");
-                entity.Property(e => e.MontoDescuentoCumpleanos).HasColumnName("montoDescuentoCumpleanos").HasColumnType("decimal(12,2)");
+                entity.ToTable("TipoDescuento");
+                entity.HasKey(e => e.IdTipoDescuento);
+                entity.Property(e => e.IdTipoDescuento).HasColumnName("idTipoDescuento");
+                entity.Property(e => e.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            });
+
+            // Promociones
+            modelBuilder.Entity<Promociones>(entity =>
+            {
+                entity.ToTable("Promociones");
+                entity.HasKey(e => e.IdPromocion);
+                entity.Property(e => e.IdPromocion).HasColumnName("idPromocion");
+                entity.Property(e => e.NombreDescuento).HasColumnName("nombreDescuento").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.MontoDescuento).HasColumnName("montoDescuento").HasColumnType("decimal(10,2)").IsRequired();
+                entity.Property(e => e.IdTipoDescuento).HasColumnName("idTipoDescuento").IsRequired();
+                entity.Property(e => e.ValorCondicion).HasColumnName("valorCondicion").HasColumnType("decimal(10,2)").IsRequired();
+                entity.Property(e => e.Activo).HasColumnName("activo").HasDefaultValue(true);
+                entity.Property(e => e.Motivo).HasColumnName("motivo").IsRequired();
+                
+                entity.HasOne(e => e.TipoDescuento)
+                      .WithMany(t => t.Promociones)
+                      .HasForeignKey(e => e.IdTipoDescuento)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // EstadoCuenta

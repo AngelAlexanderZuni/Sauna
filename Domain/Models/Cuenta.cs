@@ -38,6 +38,9 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("idCliente")]
         public int IdCliente { get; set; }
 
+        [Column("idPromocion")]
+        public int? IdPromocion { get; set; }
+
         [ForeignKey("IdUsuarioCreador")]
         public virtual Usuario UsuarioCreador { get; set; } = null!;
 
@@ -46,6 +49,9 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
 
         [ForeignKey("IdEstadoCuenta")]
         public virtual EstadoCuenta EstadoCuenta { get; set; } = null!;
+
+        [ForeignKey("IdPromocion")]
+        public virtual Promociones? Promocion { get; set; }
 
         public virtual ICollection<DetalleServicio> DetallesServicio { get; set; } = new List<DetalleServicio>();
         public virtual ICollection<Comprobante> Comprobantes { get; set; } = new List<Comprobante>();
