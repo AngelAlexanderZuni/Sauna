@@ -12,7 +12,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
         public string? Correo { get; set; }
         public string? Direccion { get; set; }
         public DateTime? FechaNacimiento { get; set; }
-        public int IdPrograma { get; set; }
         public bool Activo { get; set; }
         public DateTime FechaRegistro { get; set; }
         public string NombreCompleto => $"{Nombre} {Apellido}";
@@ -57,8 +56,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
         [DataType(DataType.Date)]
         [Display(Name = "Fecha de Nacimiento")]
         public DateTime? FechaNacimiento { get; set; }
-        
-        // IdPrograma se asigna automáticamente en el servicio (siempre 1 - único programa del sistema)
     }
 
     public class ClienteEditDTO
@@ -103,7 +100,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
         [Display(Name = "Fecha de Nacimiento")]
         public DateTime? FechaNacimiento { get; set; }
         
-        // IdPrograma no se puede editar - se asigna automáticamente al crear
         public bool Activo { get; set; }
     }
 }

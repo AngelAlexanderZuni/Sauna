@@ -65,6 +65,12 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.Property(e => e.FechaRegistro).HasDefaultValueSql("GETDATE()");
 
                 entity.HasIndex(e => e.NumeroDocumento).IsUnique();
+                
+                // Ignorar propiedades NotMapped
+                entity.Ignore(e => e.NombreCompleto);
+                entity.Ignore(e => e.TipoMembresia);
+                entity.Ignore(e => e.FechaInicioMembresia);
+                entity.Ignore(e => e.FechaFinMembresia);
             });
 
             // Configuración de Rol

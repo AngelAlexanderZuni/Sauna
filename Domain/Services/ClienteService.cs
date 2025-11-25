@@ -117,7 +117,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
                 Correo = clienteDTO.Correo,
                 Direccion = clienteDTO.Direccion,
                 FechaNacimiento = clienteDTO.FechaNacimiento,
-                IdPrograma = 1, // Asignación automática al único programa de fidelización del sistema
                 Activo = true,
                 FechaRegistro = DateTime.Now
             };
@@ -215,7 +214,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
             cliente.Correo = clienteDTO.Correo;
             cliente.Direccion = clienteDTO.Direccion;
             cliente.FechaNacimiento = clienteDTO.FechaNacimiento;
-            // IdPrograma no se puede editar - permanece en 1 (único programa del sistema)
             cliente.Activo = clienteDTO.Activo;
 
             await _clienteRepository.UpdateAsync(cliente);
@@ -252,7 +250,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
                 Correo = cliente.Correo,
                 Direccion = cliente.Direccion,
                 FechaNacimiento = cliente.FechaNacimiento,
-                IdPrograma = cliente.IdPrograma,
                 Activo = cliente.Activo,
                 FechaRegistro = cliente.FechaRegistro
             };

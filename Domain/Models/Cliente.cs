@@ -49,9 +49,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("activo")]
         public bool Activo { get; set; } = true;
 
-        [Column("idPrograma")]
-        public int IdPrograma { get; set; }
-
         // Propiedades adicionales para compatibilidad
         [NotMapped]
         public string NombreCompleto => $"{Nombre} {Apellido}";
