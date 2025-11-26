@@ -4,15 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ProyectoSaunaKalixto.Web.Domain.Models
 {
     [Table("Promociones")]
-    public class Promociones
+    public class Promocion
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("idPromocion")]
         public int IdPromocion { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [MaxLength(100)]
         [Column("nombreDescuento")]
         public string NombreDescuento { get; set; } = string.Empty;
 
@@ -20,26 +19,23 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("montoDescuento", TypeName = "decimal(10,2)")]
         public decimal MontoDescuento { get; set; }
 
-        [Required]
-        [Column("idTipoDescuento")]
-        public int IdTipoDescuento { get; set; }
-
-        [Required]
-        [Column("valorCondicion", TypeName = "decimal(10,2)")]
-        public decimal ValorCondicion { get; set; }
+        [Column("valorCondicion")]
+        public int? ValorCondicion { get; set; }
 
         [Required]
         [Column("activo")]
         public bool Activo { get; set; } = true;
 
-        [Required]
+        [MaxLength(200)]
         [Column("motivo")]
-        public string Motivo { get; set; } = string.Empty;
+        public string? Motivo { get; set; }
 
-        // Navegación
-        [ForeignKey("IdTipoDescuento")]
+        [Column("idTipoDescuento")]
+        public int IdTipoDescuento { get; set; }
+
         public virtual TipoDescuento? TipoDescuento { get; set; }
 
         public virtual ICollection<Cuenta> Cuentas { get; set; } = new List<Cuenta>();
     }
 }
+

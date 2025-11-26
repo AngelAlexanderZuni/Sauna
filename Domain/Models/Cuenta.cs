@@ -51,7 +51,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         public virtual EstadoCuenta EstadoCuenta { get; set; } = null!;
 
         [ForeignKey("IdPromocion")]
-        public virtual Promociones? Promocion { get; set; }
+        public virtual Promocion? Promocion { get; set; }
 
         public virtual ICollection<DetalleServicio> DetallesServicio { get; set; } = new List<DetalleServicio>();
         public virtual ICollection<Comprobante> Comprobantes { get; set; } = new List<Comprobante>();

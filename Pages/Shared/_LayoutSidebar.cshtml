@@ -16,6 +16,7 @@
     <style>
         body.modal-open { overflow: hidden !important; }
     </style>
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="h-full" style="background-color: var(--background); color: var(--foreground); overflow-x: hidden;">
         <div class="flex h-full">

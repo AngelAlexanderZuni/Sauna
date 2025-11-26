@@ -31,7 +31,7 @@ namespace ProyectoSaunaKalixto.Web.Data
         public DbSet<TipoEgreso> TiposEgreso { get; set; }
         public DbSet<Pago> Pagos { get; set; }
         public DbSet<TipoDescuento> TiposDescuento { get; set; }
-        public DbSet<Promociones> Promociones { get; set; }
+        public DbSet<Promocion> Promociones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -336,21 +336,21 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.ToTable("TipoDescuento");
                 entity.HasKey(e => e.IdTipoDescuento);
                 entity.Property(e => e.IdTipoDescuento).HasColumnName("idTipoDescuento");
-                entity.Property(e => e.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Nombre).HasColumnName("nombre").HasMaxLength(50).IsRequired();
             });
 
             // Promociones
-            modelBuilder.Entity<Promociones>(entity =>
+            modelBuilder.Entity<Promocion>(entity =>
             {
                 entity.ToTable("Promociones");
                 entity.HasKey(e => e.IdPromocion);
                 entity.Property(e => e.IdPromocion).HasColumnName("idPromocion");
-                entity.Property(e => e.NombreDescuento).HasColumnName("nombreDescuento").HasMaxLength(200).IsRequired();
+                entity.Property(e => e.NombreDescuento).HasColumnName("nombreDescuento").HasMaxLength(100).IsRequired();
                 entity.Property(e => e.MontoDescuento).HasColumnName("montoDescuento").HasColumnType("decimal(10,2)").IsRequired();
                 entity.Property(e => e.IdTipoDescuento).HasColumnName("idTipoDescuento").IsRequired();
-                entity.Property(e => e.ValorCondicion).HasColumnName("valorCondicion").HasColumnType("decimal(10,2)").IsRequired();
+                entity.Property(e => e.ValorCondicion).HasColumnName("valorCondicion");
                 entity.Property(e => e.Activo).HasColumnName("activo").HasDefaultValue(true);
-                entity.Property(e => e.Motivo).HasColumnName("motivo").IsRequired();
+                entity.Property(e => e.Motivo).HasColumnName("motivo").HasMaxLength(200);
                 
                 entity.HasOne(e => e.TipoDescuento)
                       .WithMany(t => t.Promociones)
