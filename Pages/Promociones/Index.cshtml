@@ -5,36 +5,846 @@
     Layout = "_LayoutSidebar";
 }
 
-<div class="flex-1 overflow-auto">
-    <div class="p-6">
-        <div class="card">
-            <!-- Header -->
-            <div class="border-b px-6 py-4" style="border-color: var(--border);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Gestión de Promociones</h2>
-                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Crea y administra promociones especiales</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
-                                style="background-color: var(--primary);">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Nueva Promoción
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content -->
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+<div class="page-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="page-title-group">
+                <svg class="page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
-                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
+                <h1 class="page-title">Gestión de Promociones</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('promociones')" data-tab="promociones">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Promociones
+                <span class="tab-count" id="countPromociones">@Model.Promociones.Count</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tipos')" data-tab="tipos">
+                <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Tipos de Descuento
+                <span class="tab-count" id="countTipos">@Model.Tipos.Count</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB: PROMOCIONES -->
+    <div class="tab-content active" id="tabPromociones">
+        <div class="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input id="searchInput" type="text" class="search-input" placeholder="Buscar por nombre o motivo..." value="@Model.Term" />
+            </div>
+            <button class="btn-primary" onclick="openCreateModal()">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nueva Promoción
+            </button>
+        </div>
+
+        <div class="promociones-grid" id="promocionesGrid">
+            @if (Model.Promociones.Any())
+            {
+                foreach (var p in Model.Promociones)
+                {
+                    <div class="promo-card" data-id="@p.IdPromocion">
+                        <div class="promo-card-header">
+                            <div class="promo-card-title-group">
+                                <h3 class="promo-card-title">@p.NombreDescuento</h3>
+                                @if (p.Activo)
+                                {
+                                    <span class="badge badge-success">
+                                        <span class="badge-dot"></span>
+                                        Activo
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-gray">
+                                        <span class="badge-dot"></span>
+                                        Inactivo
+                                    </span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(p.Motivo))
+                            {
+                                <p class="promo-card-subtitle">@p.Motivo</p>
+                            }
+                        </div>
+                        
+                        <div class="promo-card-body">
+                            <div class="promo-info-row">
+                                <div class="promo-info-item">
+                                    <span class="promo-info-label">Tipo</span>
+                                    <span class="badge badge-blue">@p.TipoNombre</span>
+                                </div>
+                                <div class="promo-info-item">
+                                    <span class="promo-info-label">Monto</span>
+                                    <span class="promo-info-value promo-amount">S/ @p.MontoDescuento.ToString("N2")</span>
+                                </div>
+                            </div>
+                            
+                            @if (p.ValorCondicion.HasValue && p.ValorCondicion.Value > 0)
+                            {
+                                <div class="promo-condition">
+                                    <svg class="promo-condition-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="promo-condition-text">Condición: @p.ValorCondicion</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="promo-card-footer">
+                            <button class="btn-card btn-edit" onclick="editPromocion(@p.IdPromocion, '@p.NombreDescuento', @p.MontoDescuento, @p.IdTipoDescuento, @(p.ValorCondicion ?? 0), @(p.Activo ? "true" : "false"), '@(p.Motivo?.Replace("'", "\\'") ?? "")')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Editar
+                            </button>
+                            <button class="btn-card btn-delete" onclick="deletePromocion(@p.IdPromocion, '@p.NombreDescuento')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state-full">
+                    <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    <p class="empty-title">No hay promociones</p>
+                    <p class="empty-subtitle">Comienza creando tu primera promoción</p>
+                    <button class="btn-primary" onclick="openCreateModal()">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nueva Promoción
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- TAB: TIPOS DE DESCUENTO -->
+    <div class="tab-content" id="tabTipos">
+        <div class="search-container">
+            <div class="toolbar-info">
+                <p class="toolbar-text">Gestiona los tipos de descuento disponibles para tus promociones</p>
+            </div>
+            <button class="btn-primary" onclick="openCreateTipo()">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nuevo Tipo
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="th-center" style="width:100px">ID</th>
+                            <th class="th-primary">Nombre del Tipo</th>
+                            <th class="th-center" style="width:140px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaTipos">
+                        @foreach (var t in Model.Tipos)
+                        {
+                            <tr class="table-row" data-id="@t.IdTipoDescuento">
+                                <td class="td-center"><span class="tipo-id">#@t.IdTipoDescuento</span></td>
+                                <td><span class="tipo-name">@t.Nombre</span></td>
+                                <td class="td-center">
+                                    <div class="action-buttons">
+                                        <button class="btn-icon-action btn-edit" onclick="openEditTipo(@t.IdTipoDescuento, '@t.Nombre')" title="Editar">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-icon-action btn-delete" onclick="deleteTipo(@t.IdTipoDescuento, '@t.Nombre')" title="Eliminar">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- MODAL CREAR/EDITAR PROMOCIÓN -->
+<div id="modalCrear" class="modal-overlay" onclick="closeModalCrear(event)">
+    <div class="modal-content-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Nueva Promoción
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalCrear(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form method="post" asp-page-handler="Crear" class="modal-form" id="formCrearPromo">
+            @Html.AntiForgeryToken()
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Promoción <span class="required">*</span></label>
+                    <input name="NombreDescuento" class="form-input" placeholder="Ej: Descuento por 5 visitas" required autofocus />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Descuento <span class="required">*</span></label>
+                        <select name="IdTipoDescuento" id="selectTipoCrear" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var tipo in Model.Tipos)
+                            {
+                                <option value="@tipo.IdTipoDescuento">@tipo.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Monto (S/) <span class="required">*</span></label>
+                        <input name="MontoDescuento" type="number" step="0.01" min="0" class="form-input" placeholder="0.00" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Valor de Condición <span class="form-hint">(Opcional)</span></label>
+                    <input name="ValorCondicion" type="number" min="0" class="form-input" placeholder="Ej: 5" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Motivo o Descripción <span class="form-hint">(Opcional)</span></label>
+                    <textarea name="Motivo" rows="3" class="form-textarea" placeholder="Describe el motivo..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input name="Activo" type="checkbox" checked />
+                        <span class="checkbox-label">Promoción activa</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalCrear(event)">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnCrearPromo">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span id="btnCrearPromoText">Crear Promoción</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR PROMOCIÓN -->
+<div id="modalEditar" class="modal-overlay" onclick="closeModalEditar(event)">
+    <div class="modal-content-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Editar Promoción
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalEditar(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form method="post" asp-page-handler="Actualizar" class="modal-form" id="formEditar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="editId" />
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Promoción <span class="required">*</span></label>
+                    <input name="NombreDescuento" id="editNombre" class="form-input" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Descuento <span class="required">*</span></label>
+                        <select name="IdTipoDescuento" id="editTipo" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var tipo in Model.Tipos)
+                            {
+                                <option value="@tipo.IdTipoDescuento">@tipo.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Monto (S/) <span class="required">*</span></label>
+                        <input name="MontoDescuento" id="editMonto" type="number" step="0.01" min="0" class="form-input" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Valor de Condición <span class="form-hint">(Opcional)</span></label>
+                    <input name="ValorCondicion" id="editCondicion" type="number" min="0" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Motivo o Descripción <span class="form-hint">(Opcional)</span></label>
+                    <textarea name="Motivo" id="editMotivo" rows="3" class="form-textarea"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input name="Activo" id="editActivo" type="checkbox" />
+                        <span class="checkbox-label">Promoción activa</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalEditar(event)">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL TIPO DESCUENTO -->
+<div id="modalTipo" class="modal-overlay" onclick="closeModalTipo(event)">
+    <div class="modal-content-box-sm" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTipoTitle">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Nuevo Tipo
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalTipo(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="formTipo" class="modal-form" onsubmit="submitTipo(event)">
+            <input type="hidden" id="tipoId" />
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Tipo <span class="required">*</span></label>
+                    <input id="tipoNombre" class="form-input" placeholder="Ej: Porcentaje, Fijo, Especial..." required autofocus maxlength="50" />
+                    <p class="form-hint">Este nombre se mostrará al crear promociones</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalTipo(event)">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnSubmitTipo">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span id="btnSubmitTipoText">Crear Tipo</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.page-container{padding:2rem;max-width:1400px;margin:0 auto;background:#f8f9fa;min-height:100vh}
+.page-header{margin-bottom:2rem}
+.page-header-content{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.page-title-group{display:flex;align-items:center;gap:.75rem}
+.page-icon{width:2rem;height:2rem;color:#7c3aed}
+.page-title{font-size:1.875rem;font-weight:700;color:#1f2937;margin:0}
+
+.tabs-container{margin-bottom:2rem}
+.tabs-header{display:flex;gap:0.5rem;border-bottom:2px solid #e5e7eb;padding-bottom:0;background:#fff;border-radius:.75rem .75rem 0 0;padding:.5rem .5rem 0}
+.tab-btn{display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;color:#6b7280;font-weight:600;font-size:0.875rem;cursor:pointer;transition:all 0.2s;position:relative;border-radius:.5rem .5rem 0 0}
+.tab-btn:hover{color:#1f2937;background:#f9fafb}
+.tab-btn.active{color:#7c3aed;border-bottom-color:#7c3aed;background:#fff}
+.tab-icon{width:1.125rem;height:1.125rem}
+.tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:1.5rem;height:1.5rem;padding:0 0.375rem;background:#f3f4f6;color:#6b7280;border-radius:9999px;font-size:0.75rem;font-weight:700}
+.tab-btn.active .tab-count{background:#ede9fe;color:#7c3aed}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+.toolbar-info{flex:1}
+.toolbar-text{font-size:0.875rem;color:#6b7280;margin:0}
+
+.btn-primary{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;background:#7c3aed;color:#fff;border:none;border-radius:.5rem;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .2s;box-shadow:0 1px 3px 0 rgba(124,58,237,.2);white-space:nowrap}
+.btn-primary:hover{background:#6d28d9;box-shadow:0 4px 6px -1px rgba(124,58,237,.3);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed}
+.btn-icon{width:1.25rem;height:1.25rem}
+
+.search-container{margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;background:#fff;padding:1.25rem;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.05)}
+.search-wrapper{position:relative;flex:1;max-width:28rem}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:1.25rem;height:1.25rem;color:#9ca3af;pointer-events:none}
+.search-input{width:100%;padding:.75rem 1rem .75rem 3rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;transition:all .2s;background:#fff}
+.search-input:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+
+.promociones-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:1.5rem}
+
+.promo-card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.05);border:1px solid #e5e7eb;overflow:hidden;transition:all .2s;display:flex;flex-direction:column}
+.promo-card:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.1);transform:translateY(-2px);border-color:#7c3aed}
+
+.promo-card-header{padding:1.25rem;border-bottom:1px solid #f3f4f6}
+.promo-card-title-group{display:flex;justify-content:space-between;align-items:start;gap:1rem;margin-bottom:.5rem}
+.promo-card-title{font-size:1.125rem;font-weight:700;color:#1f2937;margin:0;line-height:1.4}
+.promo-card-subtitle{font-size:.875rem;color:#6b7280;margin:0;line-height:1.5}
+
+.promo-card-body{padding:1.25rem;flex:1}
+.promo-info-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.promo-info-item{display:flex;flex-direction:column;gap:.375rem}
+.promo-info-label{font-size:.75rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em}
+.promo-info-value{font-size:1rem;font-weight:600;color:#1f2937}
+.promo-amount{color:#10b981;font-size:1.25rem}
+
+.promo-condition{display:flex;align-items:center;gap:.5rem;padding:.75rem;background:#f0fdf4;border-radius:.5rem;border:1px solid #d1fae5}
+.promo-condition-icon{width:1.125rem;height:1.125rem;color:#10b981;flex-shrink:0}
+.promo-condition-text{font-size:.875rem;color:#065f46;font-weight:500}
+
+.promo-card-footer{padding:1rem 1.25rem;background:#f9fafb;border-top:1px solid #e5e7eb;display:flex;gap:.75rem}
+
+.btn-card{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.625rem 1rem;border:none;border-radius:.375rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;flex:1}
+.btn-card svg{width:1.125rem;height:1.125rem}
+.btn-edit{background:#eff6ff;color:#2563eb}
+.btn-edit:hover{background:#dbeafe;color:#1e40af}
+.btn-delete{background:#fef2f2;color:#ef4444}
+.btn-delete:hover{background:#fee2e2;color:#dc2626}
+
+.empty-state-full{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;background:#fff;border-radius:.75rem;border:2px dashed #e5e7eb}
+.empty-icon{width:4rem;height:4rem;color:#d1d5db;margin-bottom:1rem}
+.empty-title{font-size:1.25rem;font-weight:700;color:#6b7280;margin-bottom:.5rem}
+.empty-subtitle{font-size:.875rem;color:#9ca3af;margin-bottom:1.5rem}
+
+.card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.05);overflow:hidden;border:1px solid #e5e7eb}
+.table-wrapper{overflow-x:auto}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead{background:#f9fafb;border-bottom:1px solid #e5e7eb}
+.data-table th{padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em}
+.th-primary{text-align:left}
+.th-center{text-align:center}
+.th-right{text-align:right}
+.table-row{border-bottom:1px solid #f3f4f6;transition:background-color .15s}
+.table-row:hover{background:#f9fafb}
+.table-row:last-child{border-bottom:none}
+.data-table td{padding:1rem;font-size:.875rem;color:#1f2937}
+.td-center{text-align:center}
+.td-right{text-align:right}
+
+.tipo-id{font-size:0.8125rem;font-weight:700;color:#6b7280;font-variant-numeric:tabular-nums}
+.tipo-name{font-weight:600;color:#1f2937;font-size:.9375rem}
+
+.badge{display:inline-flex;align-items:center;gap:.375rem;padding:.375rem .75rem;border-radius:9999px;font-size:.75rem;font-weight:700;line-height:1;white-space:nowrap}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.badge-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:currentColor}
+
+.action-buttons{display:flex;justify-content:center;gap:.5rem}
+.btn-icon-action{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border:none;border-radius:.375rem;cursor:pointer;transition:all .15s;background:transparent}
+.btn-icon-action svg{width:1.125rem;height:1.125rem}
+.btn-icon-action.btn-edit{color:#7c3aed}
+.btn-icon-action.btn-edit:hover{background:#f5f3ff}
+.btn-icon-action.btn-delete{color:#ef4444}
+.btn-icon-action.btn-delete:hover{background:#fef2f2}
+
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-content-box{background:#fff;border-radius:.75rem;max-width:36rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.2)}
+.modal-content-box-sm{background:#fff;border-radius:.75rem;max-width:28rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.5rem;border-bottom:1px solid #e5e7eb;background:#f9fafb}
+.modal-title{display:flex;align-items:center;gap:.75rem;font-size:1.25rem;font-weight:700;color:#1f2937;margin:0}
+.modal-icon{width:1.5rem;height:1.5rem;color:#7c3aed}
+.btn-close{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border:none;background:transparent;border-radius:.5rem;color:#6b7280;cursor:pointer;transition:all .15s}
+.btn-close:hover{background:#e5e7eb;color:#1f2937}
+.btn-close svg{width:1.25rem;height:1.25rem}
+
+.modal-form{display:flex;flex-direction:column}
+.modal-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.5rem}
+.form-label{font-size:.875rem;font-weight:600;color:#374151;display:flex;align-items:center;gap:.25rem}
+.required{color:#ef4444}
+.form-hint{font-weight:400;color:#6b7280;font-size:.75rem}
+.form-input,.form-select,.form-textarea{width:100%;padding:.75rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.875rem;color:#1f2937;transition:all .15s;background:#fff;font-family:inherit}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-checkbox{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;padding:.5rem}
+.form-checkbox input[type="checkbox"]{width:1.25rem;height:1.25rem;cursor:pointer;accent-color:#7c3aed}
+.checkbox-label{font-size:.875rem;color:#374151;font-weight:500}
+
+.modal-footer{display:flex;justify-content:flex-end;gap:.75rem;padding:1rem 1.5rem;border-top:1px solid #e5e7eb;background:#f9fafb}
+.btn-secondary{padding:.75rem 1.25rem;border:1px solid #d1d5db;background:#fff;color:#374151;border-radius:.5rem;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{background:#f3f4f6;border-color:#9ca3af}
+
+@@media (max-width:768px){
+.page-container{padding:1rem}
+.page-header-content{flex-direction:column;align-items:stretch}
+.search-container{flex-direction:column;align-items:stretch;padding:1rem}
+.search-wrapper{max-width:none}
+.promociones-grid{grid-template-columns:1fr;gap:1rem}
+.form-row{grid-template-columns:1fr}
+.tabs-header{overflow-x:auto;padding:.5rem}
+.promo-info-row{grid-template-columns:1fr}
+}
+</style>
+}
+
+@section Scripts {
+<script>
+function switchTab(tab){
+const tabs=document.querySelectorAll('.tab-btn');
+const contents=document.querySelectorAll('.tab-content');
+tabs.forEach(t=>t.classList.remove('active'));
+contents.forEach(c=>c.classList.remove('active'));
+document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+}
+
+let searchTimeout;
+document.getElementById('searchInput')?.addEventListener('input',function(e){
+clearTimeout(searchTimeout);
+searchTimeout=setTimeout(()=>{
+const term=e.target.value.trim();
+const url=new URL(window.location.href);
+if(term){url.searchParams.set('term',term)}else{url.searchParams.delete('term')}
+window.location.href=url.toString()
+},500)
+});
+
+function openCreateModal(){
+document.getElementById('modalCrear').classList.add('active');
+document.body.style.overflow='hidden';
+}
+
+function closeModalCrear(e){
+e?.preventDefault();
+e?.stopPropagation();
+document.getElementById('modalCrear').classList.remove('active');
+document.body.style.overflow='';
+}
+
+function editPromocion(id,nombre,monto,tipo,condicion,activo,motivo){
+document.getElementById('editId').value=id;
+document.getElementById('editNombre').value=nombre;
+document.getElementById('editMonto').value=monto;
+document.getElementById('editTipo').value=tipo;
+document.getElementById('editCondicion').value=condicion||'';
+document.getElementById('editActivo').checked=(activo===true||activo==='true');
+document.getElementById('editMotivo').value=motivo||'';
+document.getElementById('formEditar').action='?handler=Actualizar&id='+id;
+document.getElementById('modalEditar').classList.add('active');
+document.body.style.overflow='hidden';
+}
+
+function closeModalEditar(e){
+e?.preventDefault();
+e?.stopPropagation();
+document.getElementById('modalEditar').classList.remove('active');
+document.body.style.overflow='';
+}
+
+function deletePromocion(id,nombre){
+if(!confirm(`¿Eliminar la promoción "${nombre}"?\n\nEsta acción no se puede deshacer.`)){return}
+fetch(`?handler=Eliminar&id=${id}`,{
+method:'POST',
+headers:{'RequestVerificationToken':document.querySelector('input[name="__RequestVerificationToken"]')?.value}
+})
+.then(r=>r.json())
+.then(data=>{
+if(data.success){
+document.querySelector(`.promo-card[data-id="${id}"]`)?.remove();
+updateCount('countPromociones',-1);
+checkEmptyState();
+}else{
+alert('Error al eliminar la promoción');
+}
+})
+.catch(()=>{alert('Error al eliminar la promoción')});
+}
+
+let isEditingTipo=false;
+
+function openCreateTipo(){
+document.getElementById('formTipo').reset();
+document.getElementById('tipoId').value='';
+document.getElementById('modalTipoTitle').innerHTML='<svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Nuevo Tipo';
+document.getElementById('btnSubmitTipoText').textContent='Crear Tipo';
+isEditingTipo=false;
+document.getElementById('modalTipo').classList.add('active');
+document.body.style.overflow='hidden';
+setTimeout(()=>document.getElementById('tipoNombre')?.focus(),100);
+}
+
+function openEditTipo(id,nombre){
+document.getElementById('formTipo').reset();
+document.getElementById('tipoId').value=id;
+document.getElementById('tipoNombre').value=nombre;
+document.getElementById('modalTipoTitle').innerHTML='<svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Editar Tipo';
+document.getElementById('btnSubmitTipoText').textContent='Guardar Cambios';
+isEditingTipo=true;
+document.getElementById('modalTipo').classList.add('active');
+document.body.style.overflow='hidden';
+setTimeout(()=>document.getElementById('tipoNombre')?.focus(),100);
+}
+
+function closeModalTipo(e){
+if(e){e.preventDefault();e.stopPropagation();}
+document.getElementById('modalTipo').classList.remove('active');
+document.body.style.overflow='';
+}
+
+async function submitTipo(e){
+e.preventDefault();
+const btn=document.getElementById('btnSubmitTipo');
+const btnText=document.getElementById('btnSubmitTipoText');
+btn.disabled=true;
+btnText.textContent='Guardando...';
+
+const id=document.getElementById('tipoId').value;
+const nombre=document.getElementById('tipoNombre').value;
+
+try{
+const handler=isEditingTipo?`ActualizarTipo&id=${id}`:'CrearTipo';
+const response=await fetch(`?handler=${handler}`,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({nombre})
+});
+const data=await response.json();
+if(data.success){
+if(isEditingTipo){
+const row=document.querySelector(`#tablaTipos tr[data-id="${id}"]`);
+if(row){
+row.querySelector('.tipo-name').textContent=data.tipo.nombre;
+}
+const options=document.querySelectorAll(`option[value="${id}"]`);
+options.forEach(opt=>opt.textContent=data.tipo.nombre);
+}else{
+const tbody=document.getElementById('tablaTipos');
+const newRow=document.createElement('tr');
+newRow.className='table-row';
+newRow.setAttribute('data-id',data.tipo.idTipoDescuento);
+newRow.innerHTML=`
+<td class="td-center"><span class="tipo-id">#${data.tipo.idTipoDescuento}</span></td>
+<td><span class="tipo-name">${data.tipo.nombre}</span></td>
+<td class="td-center">
+<div class="action-buttons">
+<button class="btn-icon-action btn-edit" onclick="openEditTipo(${data.tipo.idTipoDescuento}, '${data.tipo.nombre.replace(/'/g,"\\'")}')">
+<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+</svg>
+</button>
+<button class="btn-icon-action btn-delete" onclick="deleteTipo(${data.tipo.idTipoDescuento}, '${data.tipo.nombre.replace(/'/g,"\\'")}')">
+<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+</svg>
+</button>
+</div>
+</td>
+`;
+tbody.appendChild(newRow);
+const selects=document.querySelectorAll('#selectTipoCrear, #editTipo');
+selects.forEach(select=>{
+const newOption=document.createElement('option');
+newOption.value=data.tipo.idTipoDescuento;
+newOption.textContent=data.tipo.nombre;
+select.appendChild(newOption);
+});
+updateCount('countTipos',1);
+}
+closeModalTipo();
+}else{
+alert(data.message||'Error al guardar');
+btn.disabled=false;
+btnText.textContent=isEditingTipo?'Guardar Cambios':'Crear Tipo';
+}
+}catch(err){
+alert('Error de conexión');
+btn.disabled=false;
+btnText.textContent=isEditingTipo?'Guardar Cambios':'Crear Tipo';
+}
+}
+
+function deleteTipo(id,nombre){
+if(!confirm(`¿Eliminar tipo "${nombre}"?\n\nEsto afectará las promociones que lo usan.`))return;
+fetch(`?handler=EliminarTipo&id=${id}`,{
+method:'POST'
+})
+.then(r=>r.json())
+.then(data=>{
+if(data.success){
+document.querySelector(`#tablaTipos tr[data-id="${id}"]`)?.remove();
+document.querySelectorAll(`option[value="${id}"]`).forEach(opt=>opt.remove());
+updateCount('countTipos',-1);
+}else{
+alert(data.message||'Error al eliminar. Puede que haya promociones usando este tipo.');
+}
+})
+.catch(()=>alert('Error de conexión'));
+}
+
+function updateCount(elemId,delta){
+const elem=document.getElementById(elemId);
+if(elem){
+const current=parseInt(elem.textContent)||0;
+elem.textContent=Math.max(0,current+delta);
+}
+}
+
+function checkEmptyState(){
+const grid=document.getElementById('promocionesGrid');
+if(grid&&!grid.querySelector('.promo-card')){
+grid.innerHTML=`
+<div class="empty-state-full">
+<svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+</svg>
+<p class="empty-title">No hay promociones</p>
+<p class="empty-subtitle">Comienza creando tu primera promoción</p>
+<button class="btn-primary" onclick="openCreateModal()">
+<svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+</svg>
+Nueva Promoción
+</button>
+</div>
+`;
+}
+}
+
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'){
+closeModalCrear(e);
+closeModalEditar(e);
+closeModalTipo(e);
+}
+});
+
+document.getElementById('formCrearPromo')?.addEventListener('submit', async (e)=>{
+e.preventDefault();
+const form = e.target;
+const nombre = form.querySelector('[name="NombreDescuento"]').value.trim();
+const tipo = form.querySelector('[name="IdTipoDescuento"]').value;
+const monto = form.querySelector('[name="MontoDescuento"]').value;
+const condicion = form.querySelector('[name="ValorCondicion"]').value;
+const activo = form.querySelector('[name="Activo"]').checked;
+const motivo = form.querySelector('[name="Motivo"]').value.trim();
+const errors = [];
+if(!nombre) errors.push('El nombre es requerido');
+if(!tipo) errors.push('Seleccione el tipo de descuento');
+const m = parseFloat(monto);
+if(isNaN(m) || m < 0) errors.push('Monto inválido');
+if(condicion){ const c = parseInt(condicion,10); if(isNaN(c) || c < 0) errors.push('Condición inválida'); }
+if(errors.length){ alert(errors.join('\n')); return; }
+const btn = document.getElementById('btnCrearPromo');
+const txt = document.getElementById('btnCrearPromoText');
+btn.disabled = true; txt.textContent = 'Guardando...';
+const fd = new FormData();
+fd.append('__RequestVerificationToken', form.querySelector('input[name="__RequestVerificationToken"]').value);
+fd.append('NombreDescuento', nombre);
+fd.append('IdTipoDescuento', tipo);
+fd.append('MontoDescuento', m.toString());
+if(condicion) fd.append('ValorCondicion', condicion);
+fd.append('Activo', activo ? 'true' : 'false');
+if(motivo) fd.append('Motivo', motivo);
+try{
+const res = await fetch('?handler=CrearAjax', { method:'POST', body: fd });
+const data = await res.json();
+if(!data.success){ alert((data.errors||['Error al crear']).join('\n')); btn.disabled=false; txt.textContent='Crear Promoción'; return; }
+const p = data.promo;
+const grid = document.getElementById('promocionesGrid');
+const empty = grid.querySelector('.empty-state-full');
+if(empty) empty.remove();
+const card = document.createElement('div');
+card.className='promo-card';
+card.setAttribute('data-id', p.idPromocion);
+card.innerHTML = `
+<div class="promo-card-header">
+<div class="promo-card-title-group">
+<h3 class="promo-card-title">${p.nombreDescuento}</h3>
+${p.activo?`<span class="badge badge-success"><span class="badge-dot"></span>Activo</span>`:`<span class="badge badge-gray"><span class="badge-dot"></span>Inactivo</span>`}
+</div>
+${p.motivo?`<p class="promo-card-subtitle">${p.motivo}</p>`:''}
+</div>
+<div class="promo-card-body">
+<div class="promo-info-row">
+<div class="promo-info-item">
+<span class="promo-info-label">Tipo</span>
+<span class="badge badge-blue">${p.tipoNombre||''}</span>
+</div>
+<div class="promo-info-item">
+<span class="promo-info-label">Monto</span>
+<span class="promo-info-value promo-amount">S/ ${(p.montoDescuento||0).toFixed? p.montoDescuento.toFixed(2): p.montoDescuento}</span>
+</div>
+</div>
+${p.valorCondicion&&p.valorCondicion>0?`
+<div class="promo-condition">
+<svg class="promo-condition-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+<span class="promo-condition-text">Condición: ${p.valorCondicion}</span>
+</div>
+`:''}
+</div>
+<div class="promo-card-footer">
+<button class="btn-card btn-edit" onclick="editPromocion(${p.idPromocion}, '${p.nombreDescuento.replace(/'/g,"\\'")}', ${p.montoDescuento}, ${p.idTipoDescuento}, ${p.valorCondicion||0}, ${p.activo?'true':'false'}, '${(p.motivo||'').replace(/'/g,"\\'")}')">
+<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+Editar
+</button>
+<button class="btn-card btn-delete" onclick="deletePromocion(${p.idPromocion}, '${p.nombreDescuento.replace(/'/g,"\\'")}')">
+<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+Eliminar
+</button>
+</div>
+`;
+grid.prepend(card);
+updateCount('countPromociones', 1);
+form.reset(); btn.disabled=false; txt.textContent='Crear Promoción'; closeModalCrear();
+}catch(err){ alert('Error de red'); btn.disabled=false; txt.textContent='Crear Promoción'; }
+});
+</script>
+}

@@ -12,11 +12,11 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         public int IdTipoDescuento { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [StringLength(50)]
         [Column("nombre")]
         public string Nombre { get; set; } = string.Empty;
 
         // Navegación
-        public virtual ICollection<Promociones> Promociones { get; set; } = new List<Promociones>();
+        public virtual ICollection<Promocion> Promociones { get; set; } = new List<Promocion>();
     }
 }

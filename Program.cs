@@ -37,15 +37,24 @@ builder.Services.AddScoped<ITipoMovimientoRepository, TipoMovimientoRepository>(
 builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
 builder.Services.AddScoped<ICategoriaServicioRepository, CategoriaServicioRepository>();
 builder.Services.AddScoped<IDetalleServicioRepository, DetalleServicioRepository>();
+
 builder.Services.AddScoped<IEgresoRepository, EgresoRepository>();
 builder.Services.AddScoped<ITipoEgresoRepository, TipoEgresoRepository>();
+
+builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
+builder.Services.AddScoped<ITipoDescuentoRepository, TipoDescuentoRepository>();
+
 
 // Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
 builder.Services.AddScoped<EgresoService>();
 builder.Services.AddScoped<FileUploadService>();
+
+builder.Services.AddScoped<IPromocionService, PromocionService>();
+
 
 // Configurar autenticación con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
