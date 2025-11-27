@@ -8,7 +8,19 @@ using ProyectoSaunaKalixto.Web.Domain.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages()
+    .AddJsonOptions(options =>
+    {
+        // Configurar para aceptar tanto camelCase como PascalCase
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Agregar soporte para API Controllers
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 // Configurar Entity Framework con SQL Server
 builder.Services.AddDbContext<SaunaDbContext>(options =>
@@ -25,11 +37,15 @@ builder.Services.AddScoped<ITipoMovimientoRepository, TipoMovimientoRepository>(
 builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
 builder.Services.AddScoped<ICategoriaServicioRepository, CategoriaServicioRepository>();
 builder.Services.AddScoped<IDetalleServicioRepository, DetalleServicioRepository>();
+builder.Services.AddScoped<IEgresoRepository, EgresoRepository>();
+builder.Services.AddScoped<ITipoEgresoRepository, TipoEgresoRepository>();
 
 // Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<EgresoService>();
+builder.Services.AddScoped<FileUploadService>();
 
 // Configurar autenticación con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -85,6 +101,7 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapRazorPages();
+app.MapControllers();
 
 // Redirigir la raíz al login
 app.MapGet("/", context => 

@@ -1,0 +1,150 @@
+@model ProyectoSaunaKalixto.Web.Pages.Egresos.IndexModel
+
+<!-- Modal Header -->
+<div class="modal-header border-b" style="border-color: var(--border);">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: oklch(from var(--primary) l c h / 0.1);">
+                <svg class="h-5 w-5" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold" style="color: var(--foreground);">Gestionar Tipos de Egreso</h2>
+                <p class="text-sm" style="color: var(--muted-foreground);">Administrar categorías de gastos</p>
+            </div>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="p-2 rounded-md transition-all hover:bg-muted/50">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body px-6 py-6 space-y-6">
+    <!-- Antiforgery Token (necesario para las operaciones de tipos) -->
+    @Html.AntiForgeryToken()
+    
+    <!-- Form para crear nuevo tipo -->
+    <div class="card p-4">
+        <h3 class="text-sm font-semibold mb-3" style="color: var(--foreground);">Agregar Nuevo Tipo</h3>
+        <div class="flex gap-2">
+            <input type="text" 
+                   id="nuevoTipoNombre"
+                   placeholder="Ej: Transporte, Servicios, etc."
+                   maxlength="50"
+                   class="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                   style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);" />
+            <button type="button" onclick="crearTipoEgreso()" 
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md transition-all hover:opacity-90" 
+                    style="background-color: var(--primary); color: var(--primary-foreground);">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Agregar
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de tipos existentes -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold" style="color: var(--foreground);">Tipos Existentes</h3>
+            <div class="relative flex-1 max-w-xs ml-4">
+                <input type="text" 
+                       id="buscarTipo"
+                       placeholder="Buscar tipo..."
+                       class="w-full pl-9 pr-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                       style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);" 
+                       oninput="filtrarTipos()" />
+                <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="card">
+            <div class="overflow-x-auto">
+                <table class="w-full" id="tablaTipos">
+                    <thead class="border-b" style="border-color: var(--border);">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Nombre</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider" style="color: var(--muted-foreground);">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y" style="border-color: var(--border);" id="tiposTableBody">
+                        @foreach (var tipo in Model.TiposEgreso)
+                        {
+                            <tr class="hover:bg-muted/30 transition-colors" data-tipo-id="@tipo.IdTipoEgreso">
+                                <td class="px-4 py-3 text-sm" style="color: var(--muted-foreground);">
+                                    @tipo.IdTipoEgreso
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="tipo-nombre text-sm font-medium" style="color: var(--foreground);">
+                                        @tipo.Nombre
+                                    </span>
+                                    <input type="text" 
+                                           class="tipo-nombre-input hidden w-full px-2 py-1 text-sm border rounded" 
+                                           style="border-color: var(--border); background-color: var(--background); color: var(--foreground);"
+                                           value="@tipo.Nombre" 
+                                           maxlength="50" />
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button onclick="editarTipoEgreso(@tipo.IdTipoEgreso)" 
+                                                class="btn-editar p-2 rounded-md transition-all hover:bg-chart-2/10" 
+                                                style="color: var(--chart-2);"
+                                                title="Editar">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                        </button>
+                                        <button onclick="guardarEdicionTipo(@tipo.IdTipoEgreso)" 
+                                                class="btn-guardar hidden p-2 rounded-md transition-all hover:bg-chart-2/10" 
+                                                style="color: var(--chart-2);"
+                                                title="Guardar">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                        <button onclick="cancelarEdicionTipo(@tipo.IdTipoEgreso)" 
+                                                class="btn-cancelar hidden p-2 rounded-md transition-all hover:bg-muted/50" 
+                                                style="color: var(--muted-foreground);"
+                                                title="Cancelar">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                        <button onclick="eliminarTipoEgreso(@tipo.IdTipoEgreso, '@tipo.Nombre')" 
+                                                class="btn-eliminar p-2 rounded-md transition-all hover:bg-destructive/10" 
+                                                style="color: var(--destructive);"
+                                                title="Eliminar">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer border-t px-6 py-4" style="border-color: var(--border);">
+    <div class="flex justify-end">
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="px-6 py-2.5 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                style="border-color: var(--border); color: var(--foreground);">
+            Cerrar
+        </button>
+    </div>
+</div>

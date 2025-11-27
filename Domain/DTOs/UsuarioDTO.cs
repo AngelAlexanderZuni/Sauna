@@ -18,11 +18,11 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
 
     public class UsuarioDTO
     {
+        public int IdUsuario { get; set; } // ID numérico del usuario
         public string NombreUsuario { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;
         public string CorreoElectronico => Correo; // Alias para compatibilidad
         public int IdRol { get; set; }
-        public int IdUsuario => 0; // Por compatibilidad (nombreUsuario es la PK)
         public bool Activo { get; set; }
         public string RolNombre { get; set; } = string.Empty;
         public DateTime FechaCreacion { get; set; } = DateTime.Now;

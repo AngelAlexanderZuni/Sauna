@@ -208,6 +208,15 @@
         </div>
     </div>
 
+    <!-- Modal secundario para TipoEgreso -->
+    <div id="tipoEgresoModal" class="modal-backdrop hidden" style="z-index: 1100;">
+        <div class="modal-content max-w-md" onclick="event.stopPropagation();">
+            <div id="tipoEgresoModalContent">
+                <!-- El contenido se carga dinámicamente aquí -->
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Confirmación para Reactivar -->
     <div id="confirmModal" class="modal-backdrop hidden" onclick="Modal.closeOnBackdrop(event, 'confirmModal')">
         <div class="modal-content max-w-md" onclick="event.stopPropagation();">

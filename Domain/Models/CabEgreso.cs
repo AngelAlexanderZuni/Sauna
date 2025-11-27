@@ -11,14 +11,14 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         public int IdCabEgreso { get; set; }
 
         [Required]
-        [Column("fecha")]
+        [Column("fecha", TypeName = "datetime2(0)")]
         public DateTime Fecha { get; set; }
 
-        [Column("montoTotal", TypeName = "decimal(18,2)")]
-        public decimal? MontoTotal { get; set; }
+        [Column("montoTotal", TypeName = "decimal(12,2)")]
+        public decimal MontoTotal { get; set; }
 
         [Column("idUsuario")]
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
 
         [ForeignKey("IdUsuario")]
         public virtual Usuario? Usuario { get; set; }

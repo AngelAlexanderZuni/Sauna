@@ -75,6 +75,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return new UsuarioDTO
             {
+                IdUsuario = usuario.IdUsuario, // ⚠️ IMPORTANTE: Incluir el ID del usuario
                 NombreUsuario = usuario.NombreUsuario,
                 RolNombre = rolNombre,
                 IdRol = usuario.IdRol,
@@ -142,6 +143,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return new UsuarioDTO
             {
+                IdUsuario = usuario.IdUsuario, // ⚠️ IMPORTANTE: Incluir el ID del usuario
                 NombreUsuario = usuario.NombreUsuario,
                 RolNombre = rolNombre,
                 IdRol = usuario.IdRol,

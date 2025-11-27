@@ -26,7 +26,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("recurrente")]
         public bool Recurrente { get; set; }
 
-        [StringLength(80)]
+        [StringLength(255)]
         [Column("comprobanteRuta")]
         public string? ComprobanteRuta { get; set; }
 
