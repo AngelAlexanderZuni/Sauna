@@ -180,8 +180,8 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.ToTable("CabEgreso");
                 entity.HasKey(e => e.IdCabEgreso);
                 entity.Property(e => e.IdCabEgreso).HasColumnName("idCabEgreso");
-                entity.Property(e => e.Fecha).HasColumnName("fecha");
-                entity.Property(e => e.MontoTotal).HasColumnName("montoTotal").HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Fecha).HasColumnName("fecha").HasColumnType("datetime2(0)");
+                entity.Property(e => e.MontoTotal).HasColumnName("montoTotal").HasColumnType("decimal(12,2)");
                 entity.Property(e => e.IdUsuario).HasColumnName("idUsuario");
                 entity.HasOne(e => e.Usuario)
                       .WithMany()
@@ -305,7 +305,7 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.Property(e => e.Concepto).HasColumnName("concepto").HasMaxLength(200);
                 entity.Property(e => e.Monto).HasColumnName("monto").HasColumnType("decimal(12,2)");
                 entity.Property(e => e.Recurrente).HasColumnName("recurrente");
-                entity.Property(e => e.ComprobanteRuta).HasColumnName("comprobanteRuta").HasMaxLength(80);
+                entity.Property(e => e.ComprobanteRuta).HasColumnName("comprobanteRuta").HasMaxLength(255);
                 entity.Property(e => e.IdTipoEgreso).HasColumnName("idTipoEgreso");
                 entity.HasOne(e => e.CabEgreso)
                       .WithMany(c => c.DetallesEgreso)

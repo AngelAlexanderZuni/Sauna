@@ -1,0 +1,110 @@
+@model ProyectoSaunaKalixto.Web.Domain.DTOs.EgresoDTO
+
+@Html.AntiForgeryToken()
+
+<!-- Modal Header -->
+<div class="modal-header border-b" style="border-color: var(--border);">
+    <div class="flex items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: oklch(from var(--destructive) l c h / 0.1);">
+                <svg class="h-5 w-5" style="color: var(--destructive);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold" style="color: var(--destructive);">Eliminar Egreso</h2>
+                <p class="text-sm" style="color: var(--muted-foreground);">
+                    Esta acción no se puede deshacer
+                </p>
+            </div>
+        </div>
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="p-2 rounded-md transition-all hover:bg-muted/50">
+            <svg class="h-5 w-5" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Modal Body -->
+<form method="post" asp-page="./Index" asp-page-handler="Delete" asp-route-id="@Model.IdCabEgreso" id="deleteEgresoForm">
+<div class="modal-body px-6 py-6 space-y-6">
+    <div class="flex items-start gap-4 p-4 rounded-lg" style="background-color: oklch(from var(--destructive) l c h / 0.1); border: 2px solid oklch(from var(--destructive) l c h / 0.3);">
+        <div class="h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: oklch(from var(--destructive) l c h / 0.2);">
+            <svg class="h-6 w-6" style="color: var(--destructive);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        <div class="flex-1">
+            <p class="text-base font-semibold mb-1" style="color: var(--destructive);">
+                ¿Está seguro que desea eliminar este egreso?
+            </p>
+            <p class="text-sm" style="color: var(--muted-foreground);">
+                Se eliminarán permanentemente la cabecera y todos los detalles asociados. Esta acción no se puede deshacer.
+            </p>
+        </div>
+    </div>
+
+    <div class="card p-5">
+        <dl class="space-y-3">
+            <div class="flex justify-between items-center pb-3 border-b" style="border-color: var(--border);">
+                <dt class="text-sm font-medium flex items-center gap-2" style="color: var(--muted-foreground);">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Fecha
+                </dt>
+                <dd class="text-sm font-medium" style="color: var(--foreground);">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+            </div>
+            <div class="flex justify-between items-center pb-3 border-b" style="border-color: var(--border);">
+                <dt class="text-sm font-medium flex items-center gap-2" style="color: var(--muted-foreground);">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Usuario
+                </dt>
+                <dd class="text-sm font-medium" style="color: var(--foreground);">@Model.NombreUsuario</dd>
+            </div>
+            <div class="flex justify-between items-center pb-3 border-b" style="border-color: var(--border);">
+                <dt class="text-sm font-medium flex items-center gap-2" style="color: var(--muted-foreground);">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Conceptos
+                </dt>
+                <dd class="text-sm font-medium" style="color: var(--foreground);">@Model.Detalles.Count detalle(s)</dd>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <dt class="text-base font-bold flex items-center gap-2" style="color: var(--foreground);">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Monto Total
+                </dt>
+                <dd class="text-xl font-bold" style="color: var(--destructive);">S/ @Model.MontoTotal.ToString("N2")</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer border-t px-6 py-4" style="border-color: var(--border);">
+    <div class="flex justify-end gap-3">
+        <button type="button" onclick="Modal.close('crudModal')" 
+                class="px-6 py-2.5 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                style="border-color: var(--border); color: var(--foreground);">
+            Cancelar
+        </button>
+        <button type="submit" 
+                class="inline-flex items-center px-6 py-2.5 text-sm font-medium rounded-md transition-all hover:opacity-90 shadow-sm" 
+                style="background-color: var(--destructive); color: var(--primary-foreground);">
+            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Eliminar Egreso
+        </button>
+    </div>
+</div>
+</form>
+

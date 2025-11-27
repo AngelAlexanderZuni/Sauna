@@ -62,6 +62,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Auth
                 Console.WriteLine($"Asignando rol: {usuario.RolNombre}");
                 var claims = new List<Claim>
                 {
+                    new Claim("UserId", usuario.IdUsuario.ToString()),
                     new Claim(ClaimTypes.NameIdentifier, usuario.NombreUsuario),
                     new Claim(ClaimTypes.Name, usuario.NombreUsuario),
                     new Claim(ClaimTypes.GivenName, usuario.NombreUsuario),

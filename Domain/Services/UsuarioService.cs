@@ -36,6 +36,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return usuarios.Select(u => new UsuarioDTO
             {
+                IdUsuario = u.IdUsuario,
                 NombreUsuario = u.NombreUsuario,
                 Correo = u.Correo ?? string.Empty,
                 IdRol = u.IdRol,
@@ -59,6 +60,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return new UsuarioDTO
             {
+                IdUsuario = usuario.IdUsuario,
                 NombreUsuario = usuario.NombreUsuario,
                 Correo = usuario.Correo ?? string.Empty,
                 IdRol = usuario.IdRol,
@@ -103,6 +105,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return new UsuarioDTO
             {
+                IdUsuario = createdUsuario.IdUsuario,
                 NombreUsuario = createdUsuario.NombreUsuario,
                 Correo = createdUsuario.Correo ?? string.Empty,
                 IdRol = createdUsuario.IdRol,
@@ -182,6 +185,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             return new UsuarioDTO
             {
+                IdUsuario = usuario.IdUsuario,
                 NombreUsuario = usuario.NombreUsuario,
                 Correo = usuario.Correo ?? string.Empty,
                 IdRol = usuario.IdRol,

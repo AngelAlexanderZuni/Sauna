@@ -12,6 +12,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
+builder.Services.AddRazorPages()
+    .AddJsonOptions(options =>
+    {
+        // Configurar para aceptar tanto camelCase como PascalCase
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Agregar soporte para API Controllers
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+
 // Configurar Entity Framework con SQL Server con pool y reintentos
 var configuredCs = builder.Configuration.GetConnectionString("DefaultConnection");
 var envCs = Environment.GetEnvironmentVariable("SAUNA_CONNECTION_STRING");
@@ -40,17 +55,29 @@ builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
 builder.Services.AddScoped<ICategoriaServicioRepository, CategoriaServicioRepository>();
 builder.Services.AddScoped<IDetalleServicioRepository, DetalleServicioRepository>();
+
 builder.Services.AddScoped<IDetalleConsumoRepository, DetalleConsumoRepository>();
 builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+
+builder.Services.AddScoped<IEgresoRepository, EgresoRepository>();
+builder.Services.AddScoped<ITipoEgresoRepository, TipoEgresoRepository>();
+
+
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<ITipoDescuentoRepository, TipoDescuentoRepository>();
 builder.Services.AddScoped<ICuentaRepository, CuentaRepository>();
+
 
 // Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<EgresoService>();
+builder.Services.AddScoped<FileUploadService>();
+
 builder.Services.AddScoped<IPromocionService, PromocionService>();
 builder.Services.AddScoped<ICuentaService, CuentaService>();
 builder.Services.AddScoped<IDetalleServicioService, DetalleServicioService>();
@@ -63,6 +90,7 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IServicioService, ServicioService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddHttpContextAccessor();
+
 
 // Configurar autenticación con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -118,7 +146,11 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapRazorPages();
+
 app.MapHub<InventarioHub>("/hubs/inventario");
+
+app.MapControllers();
+
 
 // Redirigir la raíz al login
 app.MapGet("/", context => 
