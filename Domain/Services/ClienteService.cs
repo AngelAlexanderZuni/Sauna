@@ -6,6 +6,8 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 {
     public interface IClienteService
     {
+        Task<IEnumerable<ClienteDTO>> ListarAsync(string? busqueda);
+        Task<ClienteDTO?> ObtenerAsync(int id);
         Task<IEnumerable<ClienteDTO>> GetAllClientesAsync();
         Task<ClienteDTO?> GetClienteByIdAsync(int id);
         Task<IEnumerable<ClienteDTO>> SearchClientesAsync(string searchTerm);
@@ -23,6 +25,20 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
         public ClienteService(IClienteRepository clienteRepository)
         {
             _clienteRepository = clienteRepository;
+        }
+
+        public async Task<IEnumerable<ClienteDTO>> ListarAsync(string? busqueda)
+        {
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                return await SearchClientesAsync(busqueda);
+            }
+            return await GetAllClientesAsync();
+        }
+
+        public async Task<ClienteDTO?> ObtenerAsync(int id)
+        {
+            return await GetClienteByIdAsync(id);
         }
 
         public async Task<IEnumerable<ClienteDTO>> GetAllClientesAsync()

@@ -32,11 +32,11 @@ namespace ProyectoSaunaKalixto.Web.Domain.Repositories
         }
 
         public virtual async Task<T> AddAsync(T entity)
-        {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-            return entity;
-        }
+            {
+                await _context.Set<T>().AddAsync(entity);
+                await _context.SaveChangesAsync();
+                return entity;
+            }
 
         public virtual async Task UpdateAsync(T entity)
         {

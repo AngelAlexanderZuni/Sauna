@@ -605,7 +605,8 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
             return RedirectToPage();
         }
 
-                // 6. Transacción y tipo de movimiento
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(async () => {
                 using var tx = await _context.Database.BeginTransactionAsync();
                 var tipoMovimientoNombre = esEntrada ? "Entrada" : "Salida";
                 Console.WriteLine($"Buscando/creando tipo de movimiento: '{tipoMovimientoNombre}'");
@@ -661,6 +662,7 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
                 Console.WriteLine("Guardando cambios en la base de datos (transacción)...");
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
+                });
 
         Console.WriteLine("✅ Stock ajustado exitosamente");
         Console.WriteLine("=== FIN AJUSTAR STOCK ===");
@@ -744,50 +746,52 @@ namespace ProyectoSaunaKalixto.Web.Pages.Inventario
         {
             try
             {
-                using var tx = await _context.Database.BeginTransactionAsync();
+                var strategy = _context.Database.CreateExecutionStrategy();
+                int stockNuevo = 0;
+                await strategy.ExecuteAsync(async () => {
+                    using var tx = await _context.Database.BeginTransactionAsync();
 
-                var mov = await _context.MovimientoInventario.FirstOrDefaultAsync(m => m.IdMovimiento == idMovimiento);
-                if (mov == null) return new JsonResult(new { success = false, message = "Movimiento no encontrado" });
+                    var mov = await _context.MovimientoInventario.FirstOrDefaultAsync(m => m.IdMovimiento == idMovimiento);
+                    if (mov == null) throw new InvalidOperationException("Movimiento no encontrado");
 
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.IdProducto == mov.IdProducto);
-                if (producto == null) return new JsonResult(new { success = false, message = "Producto no encontrado" });
+                    var producto = await _context.Productos.FirstOrDefaultAsync(p => p.IdProducto == mov.IdProducto);
+                    if (producto == null) throw new InvalidOperationException("Producto no encontrado");
 
-                var tipoActual = await _context.TiposMovimiento.FirstOrDefaultAsync(t => t.IdTipoMovimiento == mov.IdTipoMovimiento);
-                var esEntradaActual = (tipoActual?.Nombre ?? "").ToLower().Contains("entrada");
+                    var tipoActual = await _context.TiposMovimiento.FirstOrDefaultAsync(t => t.IdTipoMovimiento == mov.IdTipoMovimiento);
+                    var esEntradaActual = (tipoActual?.Nombre ?? "").ToLower().Contains("entrada");
 
-                producto.StockActual += esEntradaActual ? -mov.Cantidad : mov.Cantidad;
+                    producto.StockActual += esEntradaActual ? -mov.Cantidad : mov.Cantidad;
 
-                var tipoNorm = (tipo ?? "").Trim().ToLower();
-                var nombreTipo = tipoNorm.Contains("salida") ? "Salida" : "Entrada";
-                var tipoNuevo = await _tiposRepo.GetOrCreateAsync(nombreTipo);
+                    var tipoNorm = (tipo ?? "").Trim().ToLower();
+                    var nombreTipo = tipoNorm.Contains("salida") ? "Salida" : "Entrada";
+                    var tipoNuevo = await _tiposRepo.GetOrCreateAsync(nombreTipo);
 
-                var nuevoEsEntrada = nombreTipo.ToLower().Contains("entrada");
-                var ajuste = nuevoEsEntrada ? cantidad : -cantidad;
+                    var nuevoEsEntrada = nombreTipo.ToLower().Contains("entrada");
+                    var ajuste = nuevoEsEntrada ? cantidad : -cantidad;
 
-                var stockPropuesto = producto.StockActual + ajuste;
-                if (stockPropuesto < 0)
-                {
-                    return new JsonResult(new { success = false, message = "Stock insuficiente para aplicar la modificación" });
-                }
+                    var stockPropuesto = producto.StockActual + ajuste;
+                    if (stockPropuesto < 0) throw new InvalidOperationException("Stock insuficiente para aplicar la modificación");
 
-                producto.StockActual = stockPropuesto;
+                    producto.StockActual = stockPropuesto;
 
-                if (tipoNuevo.IdTipoMovimiento == 0)
-                {
-                    mov.TipoMovimiento = tipoNuevo;
-                }
-                else
-                {
-                    mov.IdTipoMovimiento = tipoNuevo.IdTipoMovimiento;
-                }
-                mov.Cantidad = cantidad;
-                mov.Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
-                mov.CostoTotal = mov.CostoUnitario * cantidad;
+                    if (tipoNuevo.IdTipoMovimiento == 0)
+                    {
+                        mov.TipoMovimiento = tipoNuevo;
+                    }
+                    else
+                    {
+                        mov.IdTipoMovimiento = tipoNuevo.IdTipoMovimiento;
+                    }
+                    mov.Cantidad = cantidad;
+                    mov.Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim();
+                    mov.CostoTotal = mov.CostoUnitario * cantidad;
 
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    stockNuevo = producto.StockActual;
+                });
 
-                return new JsonResult(new { success = true, stockActual = producto.StockActual });
+                return new JsonResult(new { success = true, stockActual = stockNuevo });
             }
             catch (Exception ex)
             {

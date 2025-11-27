@@ -2312,6 +2312,39 @@ async function actualizarMovimientos() {
 
 <script>
 
+// === Real-time sync via SignalR ===
+(function(){
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js';
+    script.onload = function(){
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/inventario')
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on('StockActualizado', (idProducto, nuevoStock) => {
+            const rows = document.querySelectorAll('#productosTbody tr');
+            rows.forEach(tr => {
+                const btn = tr.querySelector('.btn-action.stock');
+                if(btn && btn.getAttribute('data-id') == String(idProducto)){
+                    const valEl = tr.querySelector('.stock-value');
+                    if (valEl) valEl.textContent = String(nuevoStock);
+                }
+            });
+        });
+
+        connection.on('MovimientoRegistrado', (m) => {
+            const activeMovs = document.getElementById('content-movimientos');
+            if (activeMovs && !activeMovs.classList.contains('hidden')){
+                actualizarMovimientos();
+            }
+        });
+
+        connection.start().catch(err => console.warn('SignalR error', err));
+    };
+    document.head.appendChild(script);
+})();
+
 async function toggleProducto(id, nombre, activo) {
     try {
         const url = new URL(window.location.href);

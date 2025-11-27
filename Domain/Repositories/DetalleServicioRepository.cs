@@ -16,5 +16,14 @@ namespace ProyectoSaunaKalixto.Web.Domain.Repositories
                 .OrderByDescending(d => d.Cuenta.FechaHoraCreacion)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<DetalleServicio>> GetByCuentaIdAsync(int cuentaId)
+        {
+            return await _context.DetallesServicio
+                .Include(d => d.Servicio)
+                .Where(d => d.IdCuenta == cuentaId)
+                .OrderByDescending(d => d.IdDetalleServicio)
+                .ToListAsync();
+        }
     }
 }

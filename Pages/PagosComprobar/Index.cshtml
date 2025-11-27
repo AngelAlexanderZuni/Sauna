@@ -1,40 +1,1972 @@
 @page
 @model ProyectoSaunaKalixto.Web.Pages.PagosComprobar.IndexModel
 @{
-    ViewData["Title"] = "Pagos y Comprobar";
+    ViewData["Title"] = "Procesamiento de Pagos";
     Layout = "_LayoutSidebar";
 }
 
-<div class="flex-1 overflow-auto">
-    <div class="p-6">
-        <div class="card">
-            <!-- Header -->
-            <div class="border-b px-6 py-4" style="border-color: var(--border);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Pagos y Comprobantes</h2>
-                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Gestiona los pagos y emite comprobantes</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
-                                style="background-color: var(--primary);">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Registrar Pago
-                        </button>
-                    </div>
-                </div>
-            </div>
+<!-- Breadcrumb Navigation -->
+<nav class="breadcrumb-nav" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/CuentasConsumos">Cuentas</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Procesamiento de Pagos</li>
+    </ol>
+</nav>
 
-            <!-- Content -->
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+<!-- Page Header -->
+<div class="enterprise-header">
+    <div class="header-content">
+        <div class="header-title-group">
+            <div class="icon-wrapper">
+                <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
-                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
             </div>
+            <div>
+                <h1 class="enterprise-title">Procesamiento de Pagos y Comprobantes</h1>
+                <p class="enterprise-subtitle">
+                    <span class="client-name">@Model.ClienteNombreCompleto</span>
+                    <span class="divider-dot">•</span>
+                    <span>Cuenta #@Model.cuentaId</span>
+                    @if(!string.IsNullOrWhiteSpace(Model.ClienteNumeroDocumento)){
+                        <span class="divider-dot">•</span>
+                        <span class="client-doc">DNI @Model.ClienteNumeroDocumento</span>
+                    }
+                    <span class="divider-dot">•</span>
+                    <span>@DateTime.Now.ToString("dddd, dd MMMM yyyy")</span>
+                </p>
+            </div>
+        </div>
+        @{ 
+            var totalPagado = Model.Pagos.Sum(p => p.Monto);
+            var totalMostrar = Model.TotalMostrar;
+            var montoPendiente = totalMostrar - totalPagado;
+            if (montoPendiente < 0) montoPendiente = 0;
+            var progreso = totalMostrar > 0 ? (int)Math.Round((totalPagado / totalMostrar) * 100M, 0) : 0;
+        }
+        <div class="status-pills">
+            @if(montoPendiente <= 0)
+            {
+                <span class="pill pill-success">
+                    <svg class="pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Pagado
+                </span>
+            }
+            else if(totalPagado > 0)
+            {
+                <span class="pill pill-warning">
+                    <svg class="pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Pago Parcial
+                </span>
+            }
+            else
+            {
+                <span class="pill pill-danger">
+                    <svg class="pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Pendiente
+                </span>
+            }
+            @if(Model.Comprobantes.Any())
+            {
+                <span class="pill pill-info">
+                    <svg class="pill-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Comprobante Emitido
+                </span>
+            }
         </div>
     </div>
 </div>
+
+<!-- Main Content Grid -->
+<div class="enterprise-layout">
+    
+    <!-- Left Panel - Account Details -->
+    <div class="content-panel">
+        
+        <!-- Financial Summary Card -->
+        <div class="summary-card">
+            <div class="summary-header">
+                <h2 class="summary-title">Resumen Financiero</h2>
+                <div class="progress-indicator">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @progreso%"></div>
+                    </div>
+                    <span class="progress-text">@progreso% Pagado</span>
+                </div>
+            </div>
+            
+            <div class="summary-body">
+                <div class="metric-grid">
+                    <div class="metric">
+                        <span class="metric-label">Subtotal Servicios</span>
+                        <span class="metric-value">S/ @Model.Cuenta?.SubtotalServicios.ToString("N2")</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Subtotal Productos</span>
+                        <span class="metric-value">S/ @Model.Cuenta?.SubtotalProductos.ToString("N2")</span>
+                    </div>
+                    @if(Model.DescuentoAplicado > 0 && string.IsNullOrEmpty(Model.Cuenta?.PromocionNombre))
+                    {
+                        <div class="metric metric-discount">
+                            <span class="metric-label">Descuento Aplicado</span>
+                            <span class="metric-value">-S/ @Model.DescuentoAplicado.ToString("N2")</span>
+                        </div>
+                    }
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Cuenta?.PromocionNombre))
+                {
+                    <div class="promotion-banner">
+                        <div class="promotion-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                        </div>
+                        <div class="promotion-content">
+                            <span class="promotion-name">@Model.Cuenta?.PromocionNombre</span>
+                            <span class="promotion-amount">-S/ @((Model.Cuenta?.PromocionMontoDescuento ?? 0M).ToString("N2"))</span>
+                        </div>
+                    </div>
+                }
+                
+                <div class="divider"></div>
+                
+                <div class="total-section">
+                    <div class="total-row">
+                        <span>Base Imponible</span>
+                        <span>S/ @Model.BaseImponible.ToString("N2")</span>
+                    </div>
+                    <div class="total-row">
+                        <span>IGV (@(Model.IgvRate.ToString("P0")))</span>
+                        <span>S/ @Model.IgvMonto.ToString("N2")</span>
+                    </div>
+                    <div class="total-row total-final">
+                        <span>Total General</span>
+                        <span>S/ @Model.TotalMostrar.ToString("N2")</span>
+                    </div>
+                </div>
+                
+                @if(totalPagado > 0 || montoPendiente > 0)
+                {
+                    <div class="payment-breakdown">
+                        <div class="breakdown-row paid">
+                            <div class="breakdown-label">
+                                <svg class="breakdown-icon" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Total Pagado</span>
+                            </div>
+                            <span class="breakdown-amount">S/ @totalPagado.ToString("N2")</span>
+                        </div>
+                        @if(montoPendiente > 0)
+                        {
+                            <div class="breakdown-row pending">
+                                <div class="breakdown-label">
+                                    <svg class="breakdown-icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Saldo Pendiente</span>
+                                </div>
+                                <span class="breakdown-amount">S/ @montoPendiente.ToString("N2")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Services & Products Accordion -->
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <span>Servicios Consumidos</span>
+                        <span class="badge">@Model.ServiciosDetalle.Count()</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                <div class="accordion-content">
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th class="text-right">Precio Unit.</th>
+                                    <th class="text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if(Model.ServiciosDetalle.Any()){
+                                    @foreach(var s in Model.ServiciosDetalle){
+                                        <tr>
+                                            <td class="cell-strong">@s.ServicioNombre</td>
+                                            <td class="text-center">@s.Cantidad</td>
+                                            <td class="text-right">S/ @s.PrecioUnitario.ToString("N2")</td>
+                                            <td class="text-right cell-strong">S/ @s.Subtotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                } else {
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Sin servicios registrados</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <div class="accordion-title">
+                        <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        <span>Productos Consumidos</span>
+                        <span class="badge">@Model.ProductosDetalle.Count()</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                <div class="accordion-content">
+                    <div class="data-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>SKU</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th class="text-right">Precio</th>
+                                    <th class="text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if(Model.ProductosDetalle.Any()){
+                                    @foreach(var p in Model.ProductosDetalle){
+                                        <tr>
+                                            <td class="cell-strong">@p.ProductoNombre</td>
+                                            <td><span class="sku-badge">@p.ProductoCodigo</span></td>
+                                            <td class="text-center">@p.Cantidad</td>
+                                            <td class="text-right">S/ @p.PrecioUnitario.ToString("N2")</td>
+                                            <td class="text-right cell-strong">S/ @p.Subtotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                } else {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Sin productos registrados</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Transaction History -->
+        <div class="history-section">
+            <div class="section-header">
+                <h3 class="section-title">Historial de Transacciones</h3>
+            </div>
+            
+            <div class="timeline-container">
+                @if(Model.Pagos.Any() || Model.Comprobantes.Any())
+                {
+                    var eventos = new List<dynamic>();
+                    foreach(var p in Model.Pagos)
+                    {
+                        eventos.Add(new { Fecha = p.FechaHora, Tipo = "Pago", Objeto = p });
+                    }
+                    foreach(var c in Model.Comprobantes)
+                    {
+                        eventos.Add(new { Fecha = c.FechaEmision, Tipo = "Comprobante", Objeto = c });
+                    }
+                    var eventosOrdenados = eventos.OrderByDescending(e => e.Fecha);
+                    
+                    @foreach(var evento in eventosOrdenados)
+                    {
+                        @if(evento.Tipo == "Pago")
+                        {
+                            var p = evento.Objeto as ProyectoSaunaKalixto.Web.Domain.DTOs.PagoDto;
+                            <div class="timeline-event">
+                                <div class="event-marker payment"></div>
+                                <div class="event-card">
+                                    <div class="event-header">
+                                        <div class="event-title-group">
+                                            <svg class="event-icon payment" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                                <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <div>
+                                                <span class="event-title">Pago Registrado</span>
+                                                <span class="event-meta">@p.MetodoNombre</span>
+                                            </div>
+                                        </div>
+                                        <span class="event-amount payment">S/ @p.Monto.ToString("N2")</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <span class="event-date">@p.FechaHora.ToString("dd MMM yyyy, HH:mm")</span>
+                                        @if(!string.IsNullOrEmpty(p.NumeroReferencia))
+                                        {
+                                            <span class="event-ref">Ref: @p.NumeroReferencia</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            var c = evento.Objeto as ProyectoSaunaKalixto.Web.Domain.DTOs.ComprobanteDto;
+                            <div class="timeline-event">
+                                <div class="event-marker document"></div>
+                                <div class="event-card">
+                                    <div class="event-header">
+                                        <div class="event-title-group">
+                                            <svg class="event-icon document" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <div>
+                                                <span class="event-title">Comprobante Emitido</span>
+                                                <span class="event-meta">@c.TipoNombre @c.Serie-@c.Numero</span>
+                                            </div>
+                                        </div>
+                                        <span class="event-amount document">S/ @c.Total.ToString("N2")</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <span class="event-date">@c.FechaEmision.ToString("dd MMM yyyy, HH:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="empty-timeline">
+                        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p class="empty-text">Sin transacciones registradas</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel - Payment Processing -->
+    <div class="action-panel">
+        <div class="payment-wizard">
+            <div class="wizard-header">
+                <h2 class="wizard-title">Procesar Transacción</h2>
+                <p class="wizard-subtitle">Complete los siguientes pasos para procesar el pago</p>
+            </div>
+            
+            <form id="formPagoComp">
+                <input type="hidden" name="idCuenta" value="@Model.cuentaId" />
+                @Html.AntiForgeryToken()
+                
+                <!-- Step 1: Cliente -->
+                <div class="wizard-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Información del Cliente</h3>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="field-label">Tipo de Documento</label>
+                            <select name="tipoDocumento" id="tipoDoc" class="field-input" required>
+                                <option value="DNI">DNI</option>
+                                <option value="RUC">RUC</option>
+                                <option value="CE">Carnet de Extranjería</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="field-label">Número de Documento</label>
+                            <input type="text" name="numeroDocumento" id="numDoc" class="field-input" 
+                                   placeholder="Ingrese el número" value="@Model.ClienteNumeroDocumento" required />
+                        </div>
+                        
+                        <div class="form-field full-width">
+                            <label class="field-label">Nombre Completo / Razón Social</label>
+                            <input type="text" name="nombreCliente" id="nombreCli" class="field-input" 
+                                   placeholder="Ingrese el nombre completo" value="@Model.ClienteNombreCompleto" required />
+                        </div>
+                        
+                        <div class="form-field full-width" id="direccionGroup" style="display:none;">
+                            <label class="field-label">Dirección Fiscal <span class="field-required">*</span></label>
+                            <input type="text" name="direccion" id="direccionFiscal" class="field-input" 
+                                   placeholder="Ingrese la dirección fiscal completa" />
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Pago -->
+                <div class="wizard-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Detalles del Pago</h3>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="field-label">Método de Pago</label>
+                            <select name="idMetodoPago" id="metodoPago" class="field-input" required>
+                                @foreach(var m in Model.Metodos){
+                                    <option value="@m.IdMetodoPago">@m.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="field-label">Monto a Pagar</label>
+                            <div class="input-currency">
+                                <span class="currency-symbol">S/</span>
+                                <input type="number" step="0.01" name="monto" id="montoPago" class="field-input-currency" 
+                                       value="@Model.TotalMostrar.ToString("F2")" max="@Model.TotalMostrar.ToString("F2")" required />
+                            </div>
+                            <small class="field-hint">Máximo: S/ @Model.TotalMostrar.ToString("N2")</small>
+                        </div>
+                        
+                        <div class="form-field full-width" id="vueltoGroup" style="display:none;">
+                            <label class="field-label">Monto Recibido (Efectivo)</label>
+                            <div class="input-currency">
+                                <span class="currency-symbol">S/</span>
+                                <input type="number" step="0.01" id="montoRecibido" class="field-input-currency" 
+                                       placeholder="0.00" />
+                            </div>
+                        </div>
+                        
+                        <div class="vuelto-alert" id="vueltoDisplay" style="display:none;">
+                            <div class="alert-icon">💰</div>
+                            <div class="alert-content">
+                                <span class="alert-label">Vuelto a entregar</span>
+                                <span class="alert-amount" id="vueltoAmount">S/ 0.00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-field full-width">
+                            <label class="field-label">Número de Referencia <span class="field-optional">(Opcional)</span></label>
+                            <input type="text" name="referencia" class="field-input" 
+                                   placeholder="Ej: OP-2024-123456" />
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Comprobante -->
+                <div class="wizard-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Comprobante de Pago</h3>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="field-label">Tipo de Comprobante</label>
+                            <select name="idTipoComprobante" id="tipoComprobante" class="field-input" required>
+                                @foreach(var t in Model.TiposComprobante){
+                                    <option value="@t.IdTipoComprobante">@t.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="field-label">Serie</label>
+                            <input type="text" name="serie" id="serieComprobante" class="field-input" 
+                                   value="B001" required />
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="wizard-actions">
+                    <button type="button" class="btn btn-outline" onclick="history.back()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnConfirmar">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Procesar Pago
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal-backdrop" id="modalConfirm" style="display:none;">
+    <div class="modal-enterprise">
+        <div class="modal-header">
+            <div class="modal-icon-wrapper warning">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 class="modal-title">Confirmar Transacción</h3>
+            <p class="modal-description">Revise los detalles antes de procesar</p>
+        </div>
+        <div class="modal-body">
+            <div class="confirmation-grid" id="confirmDetails"></div>
+            <div class="alert alert-warning">
+                <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>Esta acción registrará el pago y emitirá el comprobante. No podrá revertirse.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeConfirmModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="procesarPago()">Confirmar Operación</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal-backdrop" id="modalSuccess" style="display:none;">
+    <div class="modal-enterprise">
+        <div class="modal-header">
+            <div class="modal-icon-wrapper success">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="modal-title">Transacción Exitosa</h3>
+            <p class="modal-description" id="comprobanteInfo"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="imprimirComprobante()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Imprimir
+            </button>
+            <button class="btn btn-primary" onclick="continuarSinImprimir()">Continuar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+const totalCuenta = @Model.Cuenta?.Total ?? 0;
+const totalPagado = @Model.Pagos.Sum(p => p.Monto);
+const montoPendiente = totalCuenta - totalPagado;
+let formData = null;
+let lastComprobante = null;
+
+// Panel sin acordeón dinámico
+
+// Dirección fiscal para RUC
+document.getElementById('tipoDoc').addEventListener('change', function() {
+    const direccionGroup = document.getElementById('direccionGroup');
+    const direccionInput = document.getElementById('direccionFiscal');
+    const esRuc = this.value === 'RUC';
+    direccionGroup.style.display = esRuc ? 'block' : 'none';
+    direccionInput.required = esRuc;
+});
+
+// Calculadora de vuelto
+document.getElementById('metodoPago').addEventListener('change', function() {
+    const vueltoGroup = document.getElementById('vueltoGroup');
+    const select = this;
+    const textoMetodo = select.options[select.selectedIndex].text;
+    const metodosEfectivo = ['Efectivo', 'efectivo'];
+    vueltoGroup.style.display = metodosEfectivo.includes(textoMetodo) ? 'block' : 'none';
+});
+
+document.getElementById('montoRecibido')?.addEventListener('input', function() {
+    const montoPago = parseFloat(document.getElementById('montoPago').value) || 0;
+    const recibido = parseFloat(this.value) || 0;
+    const vuelto = recibido - montoPago;
+    const display = document.getElementById('vueltoDisplay');
+    const amount = document.getElementById('vueltoAmount');
+    if (vuelto > 0) {
+        display.style.display = 'flex';
+        amount.textContent = 'S/ ' + vuelto.toFixed(2);
+    } else {
+        display.style.display = 'none';
+    }
+});
+
+// Serie automática
+(function(){
+  const seriesPorTipo = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SeriesPorTipo));
+  const tipoSel = document.getElementById('tipoComprobante');
+  const serieInput = document.getElementById('serieComprobante');
+  function updateSerie(){
+    const opt = tipoSel.options[tipoSel.selectedIndex];
+    const nombre = opt ? opt.text : '';
+    const serie = seriesPorTipo[nombre] || serieInput.value || 'B001';
+    serieInput.value = serie;
+  }
+  if(tipoSel && serieInput){
+    tipoSel.addEventListener('change', updateSerie);
+    updateSerie();
+  }
+})();
+
+// Submit form
+document.getElementById('formPagoComp').addEventListener('submit', function(e) {
+    e.preventDefault();
+    formData = new FormData(this);
+    
+    const monto = formData.get('monto');
+    const metodoPago = document.getElementById('metodoPago');
+    const metodoTexto = metodoPago.options[metodoPago.selectedIndex].text;
+    const tipoComp = document.getElementById('tipoComprobante');
+    const tipoTexto = tipoComp.options[tipoComp.selectedIndex].text;
+    const serie = formData.get('serie');
+    const nombreCliente = formData.get('nombreCliente');
+    const numDoc = formData.get('numeroDocumento');
+    
+    const details = `
+        <div class="confirm-item">
+            <span class="confirm-label">Cliente</span>
+            <span class="confirm-value">${nombreCliente}</span>
+        </div>
+        <div class="confirm-item">
+            <span class="confirm-label">Documento</span>
+            <span class="confirm-value">${numDoc}</span>
+        </div>
+        <div class="confirm-item">
+            <span class="confirm-label">Método de Pago</span>
+            <span class="confirm-value">${metodoTexto}</span>
+        </div>
+        <div class="confirm-item">
+            <span class="confirm-label">Monto</span>
+            <span class="confirm-value confirm-amount">S/ ${parseFloat(monto).toFixed(2)}</span>
+        </div>
+        <div class="confirm-item">
+            <span class="confirm-label">Comprobante</span>
+            <span class="confirm-value">${tipoTexto} ${serie}</span>
+        </div>
+    `;
+    
+    document.getElementById('confirmDetails').innerHTML = details;
+    document.getElementById('modalConfirm').style.display = 'flex';
+});
+
+function closeConfirmModal() {
+    document.getElementById('modalConfirm').style.display = 'none';
+}
+
+async function procesarPago() {
+    if (!formData) return;
+    closeConfirmModal();
+    
+    const btn = document.getElementById('btnConfirmar');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+    
+    try {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+        const res = await fetch('?handler=RegistrarPagoComprobante', { 
+            method: 'POST', 
+            body: formData,
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept':'application/json', 'RequestVerificationToken': token }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            const comp = data.comprobante;
+            document.getElementById('comprobanteInfo').textContent = 
+                `Comprobante ${comp.serie || 'N/A'}-${comp.numero || 'N/A'} generado exitosamente`;
+            lastComprobante = comp;
+            
+            document.getElementById('modalSuccess').style.display = 'flex';
+            showToast('success', 'Transacción completada exitosamente');
+        } else {
+            showToast('error', data.message || 'Error al procesar la transacción');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        showToast('error', 'Error de conexión con el servidor');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function continuarSinImprimir() {
+    window.location.href = '/CuentasConsumos';
+}
+
+function imprimirComprobante(){
+    if(!lastComprobante){ return; }
+    window.print();
+}
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icon = type === 'success' 
+        ? '<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+        : '<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <span class="toast-message">${message}</span>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+</script>
+
+<style>
+/* Enterprise Color Palette */
+:root {
+    --color-primary: #0066FF;
+    --color-primary-dark: #0052CC;
+    --color-primary-light: #E6F0FF;
+    --color-success: #00B35D;
+    --color-success-light: #E6F9F0;
+    --color-warning: #FF8B00;
+    --color-warning-light: #FFF4E6;
+    --color-danger: #FF3B30;
+    --color-danger-light: #FFE6E6;
+    --color-info: #5856D6;
+    --color-info-light: #EEEBFF;
+    
+    --color-gray-50: #F9FAFB;
+    --color-gray-100: #F3F4F6;
+    --color-gray-200: #E5E7EB;
+    --color-gray-300: #D1D5DB;
+    --color-gray-400: #9CA3AF;
+    --color-gray-500: #6B7280;
+    --color-gray-600: #4B5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1F2937;
+    --color-gray-900: #111827;
+    
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb-nav {
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    color: var(--color-gray-500);
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    margin-left: 0.5rem;
+    color: var(--color-gray-300);
+}
+
+.breadcrumb-item a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-primary-dark);
+}
+
+.breadcrumb-item.active {
+    color: var(--color-gray-700);
+    font-weight: 500;
+}
+
+/* Enterprise Header */
+.enterprise-header {
+    background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-title-group {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.icon-wrapper {
+    width: 3.5rem;
+    height: 3.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* removed blur to avoid overall hazy look */
+}
+
+.header-icon {
+    width: 2rem;
+    height: 2rem;
+    color: white;
+}
+
+.enterprise-title {
+    color: white;
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.025em;
+}
+
+.enterprise-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9375rem;
+    margin: 0;
+}
+.client-name { color: #fff; font-weight: 700; }
+.client-doc { color: rgba(255,255,255,0.9); font-weight: 600; }
+.divider-dot { color: rgba(255,255,255,0.6); margin: 0 .25rem; }
+
+.status-pills {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    /* removed blur to avoid overall hazy look */
+}
+
+.pill-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.pill-success {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.pill-warning {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.pill-danger {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+.pill-info {
+    background: var(--color-info-light);
+    color: var(--color-info);
+}
+
+/* Enterprise Layout */
+.enterprise-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+@@media (max-width: 1280px) {
+    .enterprise-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Content Panel */
+.content-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Summary Card */
+.summary-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.summary-header {
+    background: linear-gradient(135deg, var(--color-gray-50) 0%, white 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.summary-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin: 0 0 1rem 0;
+}
+
+.progress-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.progress-bar {
+    height: 0.5rem;
+    background: var(--color-gray-200);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-success) 0%, #00D670 100%);
+}
+
+.progress-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    text-align: right;
+}
+
+.summary-body {
+    padding: 1.5rem;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+}
+
+.metric-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+}
+
+.metric-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+}
+
+.metric-discount {
+    background: var(--color-danger-light);
+}
+
+.metric-discount .metric-value {
+    color: var(--color-danger);
+}
+
+.promotion-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--color-info-light) 0%, #F0EFFF 100%);
+    border: 2px solid var(--color-info);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+}
+
+.promotion-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--color-info);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.promotion-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: white;
+}
+
+.promotion-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.promotion-name {
+    font-weight: 600;
+    color: var(--color-info);
+}
+
+.promotion-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-info);
+}
+
+.divider {
+    height: 1px;
+    background: var(--color-gray-200);
+    margin: 1.5rem 0;
+}
+
+.total-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9375rem;
+    color: var(--color-gray-700);
+}
+
+.total-final {
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--color-gray-300);
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin-top: 0.5rem;
+}
+
+.payment-breakdown {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.breakdown-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.breakdown-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.breakdown-row.paid .breakdown-label {
+    color: var(--color-success);
+}
+
+.breakdown-row.paid .breakdown-amount {
+    color: var(--color-success);
+    font-weight: 700;
+}
+
+.breakdown-row.pending .breakdown-label {
+    color: var(--color-warning);
+}
+
+.breakdown-row.pending .breakdown-amount {
+    color: var(--color-warning);
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.breakdown-amount {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Accordion */
+.accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.accordion-item {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.accordion-item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.accordion-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.accordion-header:hover {
+    background: var(--color-gray-50);
+}
+
+.accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.accordion-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-primary);
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.chevron {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-gray-400);
+    transition: transform 0.3s;
+}
+
+.accordion-content {
+    max-height: none;
+    overflow: visible;
+}
+
+.data-table-wrapper {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.data-table thead tr {
+    background: var(--color-gray-50);
+}
+
+.data-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--color-gray-200);
+}
+
+.data-table th:first-child {
+    border-radius: var(--radius-md) 0 0 0;
+}
+
+.data-table th:last-child {
+    border-radius: 0 var(--radius-md) 0 0;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-gray-100);
+    font-size: 0.875rem;
+    color: var(--color-gray-700);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr {
+    transition: background-color 0.15s;
+}
+
+.data-table tbody tr:hover {
+    background: var(--color-gray-50);
+}
+
+.cell-strong {
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.sku-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-weight: 600;
+}
+
+/* History Section */
+.history-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+}
+
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin: 0;
+}
+
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.timeline-event {
+    display: flex;
+    gap: 1rem;
+}
+
+.event-marker {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+}
+
+.event-marker.payment {
+    background: var(--color-success);
+    box-shadow: 0 0 0 4px var(--color-success-light);
+}
+
+.event-marker.document {
+    background: var(--color-info);
+    box-shadow: 0 0 0 4px var(--color-info-light);
+}
+
+.event-card {
+    flex: 1;
+    padding: 1.25rem;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-gray-200);
+    transition: all 0.2s;
+}
+
+.event-card:hover {
+    border-color: var(--color-gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.event-title-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.event-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.event-icon.payment {
+    color: var(--color-success);
+}
+
+.event-icon.document {
+    color: var(--color-info);
+}
+
+.event-title {
+    display: block;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    font-size: 0.9375rem;
+}
+
+.event-meta {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--color-gray-600);
+    margin-top: 0.25rem;
+}
+
+.event-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.event-amount.payment {
+    color: var(--color-success);
+}
+
+.event-amount.document {
+    color: var(--color-info);
+}
+
+.event-details {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.event-date {
+    font-size: 0.8125rem;
+    color: var(--color-gray-500);
+}
+
+.event-ref {
+    padding: 0.25rem 0.625rem;
+    background: var(--color-gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-family: 'Monaco', monospace;
+    color: var(--color-gray-700);
+}
+
+.empty-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 4rem;
+    height: 4rem;
+    color: var(--color-gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-text {
+    color: var(--color-gray-500);
+    font-size: 0.9375rem;
+    margin: 0;
+}
+
+/* Action Panel */
+.action-panel {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+}
+
+.payment-wizard {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.wizard-header {
+    background: linear-gradient(135deg, var(--color-gray-50) 0%, white 100%);
+    padding: 2rem;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.wizard-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin: 0 0 0.5rem 0;
+}
+
+.wizard-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+    margin: 0;
+}
+
+.wizard-step {
+    padding: 2rem;
+    border-bottom: 1px solid var(--color-gray-100);
+}
+
+.wizard-step:last-of-type {
+    border-bottom: none;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.step-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.field-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-gray-700);
+}
+
+.field-required {
+    color: var(--color-danger);
+}
+
+.field-optional {
+    font-weight: 400;
+    color: var(--color-gray-500);
+}
+
+.field-input,
+.field-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    color: var(--color-gray-900);
+    background: white;
+    transition: all 0.2s;
+}
+
+.field-input:focus,
+.field-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.field-input::placeholder {
+    color: var(--color-gray-400);
+}
+
+.input-currency {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.input-currency:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.currency-symbol {
+    padding: 0 1rem;
+    background: var(--color-gray-100);
+    color: var(--color-gray-700);
+    font-weight: 600;
+    border-right: 1px solid var(--color-gray-300);
+}
+
+.field-input-currency {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    font-size: 0.9375rem;
+    color: var(--color-gray-900);
+}
+
+.field-input-currency:focus {
+    outline: none;
+}
+
+.field-hint {
+    font-size: 0.8125rem;
+    color: var(--color-gray-500);
+}
+
+.vuelto-alert {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--color-success-light) 0%, #F0FDF4 100%);
+    border: 2px solid var(--color-success);
+    border-radius: var(--radius-md);
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+}
+
+.alert-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-success);
+}
+
+.alert-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-success);
+}
+
+.wizard-actions {
+    padding: 2rem;
+    background: var(--color-gray-50);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: white;
+    color: var(--color-gray-700);
+    border: 1px solid var(--color-gray-300);
+}
+
+.btn-outline:hover {
+    background: var(--color-gray-50);
+    border-color: var(--color-gray-400);
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Modals */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 2rem;
+}
+
+.modal-enterprise {
+    background: white;
+    border-radius: var(--radius-xl);
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--shadow-xl);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.modal-icon-wrapper {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-icon-wrapper.warning {
+    background: var(--color-warning-light);
+}
+
+.modal-icon-wrapper.success {
+    background: var(--color-success-light);
+}
+
+.modal-icon {
+    width: 2rem;
+    height: 2rem;
+}
+
+.modal-icon-wrapper.warning .modal-icon {
+    color: var(--color-warning);
+}
+
+.modal-icon-wrapper.success .modal-icon {
+    color: var(--color-success);
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    margin: 0 0 0.5rem 0;
+}
+
+.modal-description {
+    font-size: 0.9375rem;
+    color: var(--color-gray-600);
+    margin: 0;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.confirmation-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+}
+
+.confirm-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+}
+
+.confirm-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.confirm-amount {
+    font-size: 1.125rem;
+    color: var(--color-primary);
+}
+
+.alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.alert-warning {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.alert .alert-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.alert span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 1.5rem 2rem;
+    background: var(--color-gray-50);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    border-top: 1px solid var(--color-gray-200);
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border-left: 4px solid;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-out;
+    z-index: 10001;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-success {
+    border-left-color: var(--color-success);
+}
+
+.toast-error {
+    border-left-color: var(--color-danger);
+}
+
+.toast-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.toast-success .toast-icon {
+    color: var(--color-success);
+}
+
+.toast-error .toast-icon {
+    color: var(--color-danger);
+}
+
+.toast-message {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-gray-900);
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.text-muted {
+    color: var(--color-gray-500) !important;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .enterprise-header {
+        padding: 1.5rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .enterprise-title {
+        font-size: 1.5rem;
+    }
+    
+    .enterprise-layout {
+        gap: 1.5rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-actions,
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .toast {
+        right: 1rem;
+        left: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+}
+</style>

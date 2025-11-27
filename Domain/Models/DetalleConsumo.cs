@@ -22,8 +22,8 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         [Column("subtotal", TypeName = "decimal(18,2)")]
         public decimal Subtotal { get; set; }
 
-        [Column("idOrden")]
-        public int? IdOrden { get; set; }
+        [Column("idCuenta")]
+        public int IdCuenta { get; set; }
 
         [Column("idProducto")]
         public int IdProducto { get; set; }
@@ -31,6 +31,9 @@ namespace ProyectoSaunaKalixto.Web.Domain.Models
         // Navegación
         [ForeignKey("IdProducto")]
         public virtual Producto Producto { get; set; } = null!;
+
+        [ForeignKey("IdCuenta")]
+        public virtual Cuenta Cuenta { get; set; } = null!;
 
         // Propiedades calculadas
         [NotMapped]

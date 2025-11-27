@@ -128,13 +128,18 @@ namespace ProyectoSaunaKalixto.Web.Data
                 entity.Property(e => e.Cantidad).IsRequired().HasColumnName("cantidad");
                 entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18,2)").HasColumnName("precioUnitario");
                 entity.Property(e => e.Subtotal).HasColumnType("decimal(18,2)").HasColumnName("subtotal");
-                entity.Property(e => e.IdOrden).HasColumnName("idOrden");
+                entity.Property(e => e.IdCuenta).HasColumnName("idCuenta");
                 entity.Property(e => e.IdProducto).HasColumnName("idProducto");
 
                 entity.HasOne(e => e.Producto)
                     .WithMany(p => p.DetallesConsumo)
                     .HasForeignKey(e => e.IdProducto)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Cuenta)
+                    .WithMany()
+                    .HasForeignKey(e => e.IdCuenta)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<TipoMovimiento>(entity =>

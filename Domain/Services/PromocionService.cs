@@ -21,23 +21,25 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
     {
         private readonly IPromocionRepository _promRepo;
         private readonly ITipoDescuentoRepository _tipoRepo;
+        private readonly ILogger<PromocionService>? _logger;
 
-        public PromocionService(IPromocionRepository promRepo, ITipoDescuentoRepository tipoRepo)
+        public PromocionService(IPromocionRepository promRepo, ITipoDescuentoRepository tipoRepo, ILogger<PromocionService>? logger = null)
         {
             _promRepo = promRepo;
             _tipoRepo = tipoRepo;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<PromocionDto>> ListarAsync(string? term)
         {
             var list = await _promRepo.SearchAsync(term);
-            return list.Select(Map);
+            return list.Select(Mappers.PromocionMapper.ToDto);
         }
 
         public async Task<PromocionDto?> ObtenerAsync(int id)
         {
             var p = await _promRepo.GetByIdAsync(id);
-            return p == null ? null : Map(p);
+            return p == null ? null : Mappers.PromocionMapper.ToDto(p);
         }
 
         public async Task<PromocionDto> CrearAsync(PromocionCreateDto dto)
@@ -52,8 +54,18 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
                 Activo = dto.Activo,
                 Motivo = dto.Motivo?.Trim()
             };
-            var saved = await _promRepo.AddAsync(entity);
-            return Map(saved);
+            Promocion saved;
+            try
+            {
+                saved = await _promRepo.AddAsync(entity);
+                _logger?.LogInformation("Promoción creada {Id} - {Nombre}", saved.IdPromocion, saved.NombreDescuento);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error creando promoción {Nombre}", entity.NombreDescuento);
+                throw;
+            }
+            return Mappers.PromocionMapper.ToDto(saved);
         }
 
         public async Task<PromocionDto?> ActualizarAsync(int id, PromocionCreateDto dto)
@@ -67,24 +79,38 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
             p.ValorCondicion = dto.ValorCondicion;
             p.Activo = dto.Activo;
             p.Motivo = dto.Motivo?.Trim();
-            await _promRepo.UpdateAsync(p);
-            return Map(p);
+            try
+            {
+                await _promRepo.UpdateAsync(p);
+                _logger?.LogInformation("Promoción actualizada {Id}", p.IdPromocion);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error actualizando promoción {Id}", id);
+                throw;
+            }
+            return Mappers.PromocionMapper.ToDto(p);
         }
 
         public async Task<bool> EliminarAsync(int id)
         {
-            await _promRepo.DeleteAsync(id);
+            try
+            {
+                await _promRepo.DeleteAsync(id);
+                _logger?.LogInformation("Promoción eliminada {Id}", id);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error eliminando promoción {Id}", id);
+                throw;
+            }
             return true;
         }
 
         public async Task<IEnumerable<TipoDescuentoDto>> TiposAsync()
         {
             var tipos = await _tipoRepo.GetAllAsync();
-            return tipos.Select(t => new TipoDescuentoDto 
-            { 
-                IdTipoDescuento = t.IdTipoDescuento, 
-                Nombre = t.Nombre 
-            });
+            return tipos.Select(Mappers.TipoDescuentoMapper.ToDto);
         }
 
         // MÉTODOS PARA GESTIONAR TIPOS DE DESCUENTO
@@ -95,11 +121,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             var entity = new TipoDescuento { Nombre = nombre.Trim() };
             var saved = await _tipoRepo.AddAsync(entity);
-            return new TipoDescuentoDto 
-            { 
-                IdTipoDescuento = saved.IdTipoDescuento, 
-                Nombre = saved.Nombre 
-            };
+            return Mappers.TipoDescuentoMapper.ToDto(saved);
         }
 
         public async Task<TipoDescuentoDto?> ActualizarTipoAsync(int id, string nombre)
@@ -112,11 +134,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
 
             tipo.Nombre = nombre.Trim();
             await _tipoRepo.UpdateAsync(tipo);
-            return new TipoDescuentoDto 
-            { 
-                IdTipoDescuento = tipo.IdTipoDescuento, 
-                Nombre = tipo.Nombre 
-            };
+            return Mappers.TipoDescuentoMapper.ToDto(tipo);
         }
 
         public async Task<bool> EliminarTipoAsync(int id)
@@ -133,19 +151,6 @@ namespace ProyectoSaunaKalixto.Web.Domain.Services
                 throw new ArgumentException("Monto no puede ser negativo");
         }
 
-        private PromocionDto Map(Promocion p)
-        {
-            return new PromocionDto
-            {
-                IdPromocion = p.IdPromocion,
-                NombreDescuento = p.NombreDescuento,
-                MontoDescuento = p.MontoDescuento,
-                ValorCondicion = p.ValorCondicion,
-                Activo = p.Activo,
-                Motivo = p.Motivo,
-                IdTipoDescuento = p.IdTipoDescuento,
-                TipoNombre = p.TipoDescuento?.Nombre ?? string.Empty
-            };
-        }
+        
     }
 }

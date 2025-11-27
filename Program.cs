@@ -4,15 +4,26 @@ using Microsoft.EntityFrameworkCore;
 using ProyectoSaunaKalixto.Web.Data;
 using ProyectoSaunaKalixto.Web.Domain.Repositories;
 using ProyectoSaunaKalixto.Web.Domain.Services;
+using ProyectoSaunaKalixto.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
-// Configurar Entity Framework con SQL Server
-builder.Services.AddDbContext<SaunaDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Configurar Entity Framework con SQL Server con pool y reintentos
+var configuredCs = builder.Configuration.GetConnectionString("DefaultConnection");
+var envCs = Environment.GetEnvironmentVariable("SAUNA_CONNECTION_STRING");
+var finalCs = string.IsNullOrWhiteSpace(envCs) ? configuredCs : envCs;
+builder.Services.AddDbContextPool<SaunaDbContext>(options =>
+{
+    options.UseSqlServer(finalCs, sql =>
+    {
+        sql.EnableRetryOnFailure(5);
+        sql.CommandTimeout(30);
+    });
+});
 
 // Registrar repositorios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -22,17 +33,36 @@ builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IMovimientoInventarioRepository, MovimientoInventarioRepository>();
 builder.Services.AddScoped<ICategoriaProductoRepository, CategoriaProductoRepository>();
 builder.Services.AddScoped<ITipoMovimientoRepository, TipoMovimientoRepository>();
+builder.Services.AddScoped<ITipoComprobanteRepository, TipoComprobanteRepository>();
+builder.Services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
+builder.Services.AddScoped<IComprobanteRepository, ComprobanteRepository>();
+builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
 builder.Services.AddScoped<ICategoriaServicioRepository, CategoriaServicioRepository>();
 builder.Services.AddScoped<IDetalleServicioRepository, DetalleServicioRepository>();
+builder.Services.AddScoped<IDetalleConsumoRepository, DetalleConsumoRepository>();
+builder.Services.AddScoped<IServicioRepository, ServicioRepository>();
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IPromocionRepository, PromocionRepository>();
 builder.Services.AddScoped<ITipoDescuentoRepository, TipoDescuentoRepository>();
+builder.Services.AddScoped<ICuentaRepository, CuentaRepository>();
 
 // Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IPromocionService, PromocionService>();
+builder.Services.AddScoped<ICuentaService, CuentaService>();
+builder.Services.AddScoped<IDetalleServicioService, DetalleServicioService>();
+builder.Services.AddScoped<IDetalleConsumoService, DetalleConsumoService>();
+builder.Services.AddScoped<IMetodoPagoService, MetodoPagoService>();
+builder.Services.AddScoped<ITipoComprobanteService, TipoComprobanteService>();
+builder.Services.AddScoped<IComprobanteService, ComprobanteService>();
+builder.Services.AddScoped<IPagoService, PagoService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IServicioService, ServicioService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddHttpContextAccessor();
 
 // Configurar autenticación con cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -88,6 +118,7 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapRazorPages();
+app.MapHub<InventarioHub>("/hubs/inventario");
 
 // Redirigir la raíz al login
 app.MapGet("/", context => 

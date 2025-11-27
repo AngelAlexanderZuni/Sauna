@@ -5,36 +5,1446 @@
     Layout = "_LayoutSidebar";
 }
 
-<div class="flex-1 overflow-auto">
-    <div class="p-6">
-        <div class="card">
-            <!-- Header -->
-            <div class="border-b px-6 py-4" style="border-color: var(--border);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Gestión de Cuentas y Consumos</h2>
-                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Administra las cuentas y consumos de los clientes</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
-                                style="background-color: var(--primary);">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            Nueva Cuenta
-                        </button>
-                    </div>
-                </div>
-            </div>
+<!-- Sistema de Notificaciones Toast -->
+<div id="toast-container" class="toast-container"></div>
 
-            <!-- Content -->
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+<div class="page-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <div class="page-title-group">
+                <svg class="page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
-                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
+                <h1 class="page-title">Gestión de Cuentas</h1>
             </div>
         </div>
     </div>
+
+    <!-- Toolbar con búsqueda -->
+    <div class="search-container">
+        <div class="search-wrapper">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" id="searchCuentas" class="search-input" placeholder="Buscar por cliente, DNI o número de cuenta...">
+        </div>
+        <label class="form-checkbox-inline">
+            <input type="checkbox" id="checkSoloAbiertas" @(Model.SoloAbiertas ? "checked" : "") onchange="toggleAbiertas(this.checked)" />
+            <span class="checkbox-label">Solo abiertas</span>
+        </label>
+        <button class="btn-primary" onclick="openCreateCuenta()">
+            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nueva Cuenta
+        </button>
+    </div>
+
+    <!-- Grid de Cuentas -->
+    <div class="cuentas-grid" id="cuentasGrid">
+        @if (Model.Cuentas.Any())
+        {
+            foreach (var c in Model.Cuentas)
+            {
+                var clienteData = Model.Clientes.FirstOrDefault(cl => cl.ClienteID == c.IdCliente);
+                var clienteNombreCompleto = clienteData != null ? $"{clienteData.Nombre} {clienteData.Apellido}" : c.ClienteNombre;
+                var clienteDni = clienteData?.NumeroDocumento ?? "";
+                
+                <div class="cuenta-card" 
+                     data-id="@c.IdCuenta" 
+                     data-cliente="@clienteNombreCompleto" 
+                     data-dni="@clienteDni"
+                     data-promo-nombre="@(c.PromocionNombre ?? "")" 
+                     data-promo-monto="@((c.PromocionMontoDescuento ?? 0M).ToString("0.00"))"
+                     data-subtotal-servicios="@c.SubtotalServicios.ToString("0.00")"
+                     data-subtotal-productos="@c.SubtotalProductos.ToString("0.00")"
+                     data-total="@c.Total.ToString("0.00")"
+                     data-search="@($"{c.IdCuenta} {clienteNombreCompleto} {clienteDni}".ToLower())">
+                    
+                    <!-- Botón Cancelar Cuenta (X) -->
+                    @if (c.FechaHoraSalida == null)
+                    {
+                        <button class="cuenta-cancel-btn" onclick="cancelarCuenta(@c.IdCuenta)" title="Cancelar cuenta">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    }
+                    
+                    <div class="cuenta-card-header">
+                        <div class="cuenta-header-row">
+                            <div class="cuenta-info-principal">
+                                <h3 class="cuenta-card-title">@clienteNombreCompleto</h3>
+                                @if (!string.IsNullOrEmpty(clienteDni))
+                                {
+                                    <p class="cuenta-card-dni">DNI: @clienteDni</p>
+                                }
+                                <p class="cuenta-card-numero">Cuenta #@c.IdCuenta</p>
+                            </div>
+                            @if (c.FechaHoraSalida == null)
+                            {
+                                <span class="badge badge-success">
+                                    <span class="badge-dot"></span>
+                                    Abierta
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-gray">
+                                    <span class="badge-dot"></span>
+                                    Cerrada
+                                </span>
+                            }
+                        </div>
+                        <div class="cuenta-dates">
+                            <span class="cuenta-date">
+                                <svg class="cuenta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Ingreso: @c.FechaHoraCreacion.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                            @if (c.FechaHoraSalida.HasValue)
+                            {
+                                <span class="cuenta-date">
+                                    <svg class="cuenta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                    Salida: @c.FechaHoraSalida.Value.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="cuenta-card-body">
+                        <div class="cuenta-totals">
+                            <div class="cuenta-total-item">
+                                <span class="cuenta-total-label">Subtotal Servicios</span>
+                                <span class="cuenta-total-value subtotal-servicios">S/ @c.SubtotalServicios.ToString("N2")</span>
+                            </div>
+                            <div class="cuenta-total-item">
+                                <span class="cuenta-total-label">Subtotal Productos</span>
+                                <span class="cuenta-total-value subtotal-productos">S/ @c.SubtotalProductos.ToString("N2")</span>
+                            </div>
+                            @if (c.Descuento > 0)
+                            {
+                                <div class="cuenta-total-item">
+                                    <span class="cuenta-total-label">Descuento</span>
+                                    <span class="cuenta-total-value cuenta-descuento">-S/ @c.Descuento.ToString("N2")</span>
+                                </div>
+                            }
+                            <div class="cuenta-total-item cuenta-total-main">
+                                <span class="cuenta-total-label">Total</span>
+                                <span class="cuenta-total-value cuenta-total-amount">S/ @c.Total.ToString("N2")</span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(c.PromocionNombre))
+                        {
+                            <div class="cuenta-promo cuenta-promo-row">
+                                <div class="cuenta-promo-left">
+                                    <svg class="cuenta-promo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                    </svg>
+                                    <span>@c.PromocionNombre</span>
+                                </div>
+                                <span class="promo-amount">S/ @((c.PromocionMontoDescuento ?? 0M).ToString("N2"))</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="cuenta-card-footer">
+                        <button class="btn-card btn-view" onclick="verDetalles(@c.IdCuenta)">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Ver Detalles
+                        </button>
+                        @if (c.FechaHoraSalida == null)
+                        {
+                            <button class="btn-card btn-add" onclick="agregarConsumo(@c.IdCuenta)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Agregar
+                            </button>
+                            <button class="btn-card btn-pay" onclick="pagarCuenta(@c.IdCuenta)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                PAGAR
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state-full">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="empty-title">No hay cuentas</p>
+                <p class="empty-subtitle">Comienza creando una nueva cuenta</p>
+                <button class="btn-primary" onclick="openCreateCuenta()">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nueva Cuenta
+                </button>
+            </div>
+        }
+    </div>
 </div>
+
+<!-- MODAL CREAR CUENTA CON BÚSQUEDA EN TIEMPO REAL -->
+<div id="modalCrearCuenta" class="modal-overlay" onclick="closeModalCrearCuenta(event)">
+    <div class="modal-content-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Nueva Cuenta
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalCrearCuenta(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form method="post" class="modal-form" id="formCrearCuenta">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Cliente <span class="required">*</span></label>
+                    <div class="autocomplete-wrapper">
+                        <svg class="autocomplete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" id="searchCliente" class="form-input-search" placeholder="Buscar por nombre o DNI..." autocomplete="off">
+                        <input type="hidden" name="IdCliente" id="selectedClienteId" required>
+                        <div id="clienteResults" class="autocomplete-results"></div>
+                    </div>
+                    <div id="selectedClienteDisplay" class="selected-display"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Promoción <span class="form-hint">(Opcional)</span></label>
+                    <select name="IdPromocion" class="form-select">
+                        <option value="">Sin promoción</option>
+                        @foreach (var promo in Model.Promociones)
+                        {
+                            <option value="@promo.IdPromocion">@promo.NombreDescuento - S/ @promo.MontoDescuento.ToString("N2")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalCrearCuenta(event)">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnCrearCuenta">
+                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span id="btnCrearCuentaText">Crear Cuenta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL AGREGAR CONSUMO -->
+<div id="modalAgregarConsumo" class="modal-overlay" onclick="closeModalAgregarConsumo(event)">
+    <div class="modal-content-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Agregar Consumo
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalAgregarConsumo(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <input type="hidden" id="cuentaIdConsumo" />
+            
+            <div class="tabs-mini">
+                <button type="button" class="tab-mini active" onclick="switchConsumoTab('servicio')" data-tab="servicio">Servicios</button>
+                <button type="button" class="tab-mini" onclick="switchConsumoTab('producto')" data-tab="producto">Productos</button>
+            </div>
+
+            <div id="tabServicio" class="tab-content-mini active">
+                <form id="formServicio" class="consumo-form">
+                    <div class="form-group">
+                        <label class="form-label">Servicio <span class="required">*</span></label>
+                        <select name="IdServicio" id="selectServicio" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var s in Model.Servicios)
+                            {
+                                <option value="@s.IdServicio" data-precio="@s.Precio">@s.Nombre - S/ @s.Precio.ToString("N2")</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Cantidad <span class="required">*</span></label>
+                            <input name="Cantidad" type="number" min="1" value="1" class="form-input" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio <span class="required">*</span></label>
+                            <input name="PrecioUnitario" id="precioServicio" type="number" step="0.01" min="0" class="form-input" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Agregar Servicio
+                    </button>
+                </form>
+            </div>
+
+            <div id="tabProducto" class="tab-content-mini">
+                <form id="formProducto" class="consumo-form">
+                    <div class="form-group">
+                        <label class="form-label">Producto <span class="required">*</span></label>
+                        <div class="autocomplete-wrapper">
+                            <svg class="autocomplete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" id="searchProducto" class="form-input-search" placeholder="Buscar producto..." autocomplete="off">
+                            <input type="hidden" name="IdProducto" id="selectedProductoId" required>
+                            <div id="productoResults" class="autocomplete-results"></div>
+                        </div>
+                        <div id="selectedProductoDisplay" class="selected-display"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Cantidad <span class="required">*</span></label>
+                            <input name="Cantidad" id="cantidadProducto" type="number" min="1" value="1" class="form-input" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Precio <span class="required">*</span></label>
+                            <input name="PrecioUnitario" id="precioProducto" type="number" step="0.01" min="0" class="form-input" required readonly />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">
+                        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Agregar Producto
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModalAgregarConsumo(event)">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VER DETALLES -->
+<div id="modalVerDetalles" class="modal-overlay" onclick="closeModalVerDetalles(event)">
+    <div class="modal-content-box-lg" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Detalles de la Cuenta
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalVerDetalles(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <input type="hidden" id="cuentaIdDetalles" />
+            
+            <div class="detalle-section">
+                <div class="detalle-section-header">
+                    <svg class="detalle-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <h3 class="section-title">Servicios</h3>
+                </div>
+                <div class="detalles-table-wrapper">
+                    <table class="detalles-table">
+                        <thead>
+                            <tr>
+                                <th>Servicio</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio Unit.</th>
+                                <th class="text-right">Subtotal</th>
+                                <th class="text-center" style="width:100px">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyServicios">
+                            <tr class="empty-row">
+                                <td colspan="5" class="text-center">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="detalle-section">
+                <div class="detalle-section-header">
+                    <svg class="detalle-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <h3 class="section-title">Productos</h3>
+                </div>
+                <div class="detalles-table-wrapper">
+                    <table class="detalles-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio Unit.</th>
+                                <th class="text-right">Subtotal</th>
+                                <th class="text-center" style="width:140px">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyProductos">
+                            <tr class="empty-row">
+                                <td colspan="5" class="text-center">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModalVerDetalles(event)">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR CANTIDAD -->
+<div id="modalEditarCantidad" class="modal-overlay" onclick="closeModalEditarCantidad(event)">
+    <div class="modal-content-box-sm" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Editar Cantidad
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalEditarCantidad(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form id="formEditarCantidad" class="modal-form">
+            <div class="modal-body">
+                <input type="hidden" id="editDetalleId">
+                <input type="hidden" id="editCuentaId">
+                <div class="form-group">
+                    <label class="form-label">Nueva Cantidad <span class="required">*</span></label>
+                    <input type="number" id="editNuevaCantidad" class="form-input" min="1" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalEditarCantidad(event)">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL DEVOLVER CANTIDAD -->
+<div id="modalDevolverCantidad" class="modal-overlay" onclick="closeModalDevolverCantidad(event)">
+    <div class="modal-content-box-sm" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                </svg>
+                Devolver Producto
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalDevolverCantidad(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form id="formDevolverCantidad" class="modal-form">
+            <div class="modal-body">
+                <input type="hidden" id="devDetalleId">
+                <input type="hidden" id="devCuentaId">
+                <div class="form-group">
+                    <label class="form-label">Cantidad a devolver <span class="required">*</span></label>
+                    <input type="number" id="devCantidad" class="form-input" min="1" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModalDevolverCantidad(event)">Cancelar</button>
+                <button type="submit" class="btn-primary">Aceptar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- MODAL CONFIRMAR PAGO -->
+<div id="modalPago" class="modal-overlay" onclick="closeModalPago(event)">
+    <div class="modal-content-box-sm" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <svg class="modal-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Confirmar Pago
+            </h2>
+            <button type="button" class="btn-close" onclick="closeModalPago(event)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="pagoIdCuenta">
+            <div class="pago-resumen">
+                <div class="pago-resumen-item">
+                    <span class="pago-label">Subtotal Servicios:</span>
+                    <span id="pagoSubtotalServicios">S/ 0.00</span>
+                </div>
+                <div class="pago-resumen-item">
+                    <span class="pago-label">Subtotal Productos:</span>
+                    <span id="pagoSubtotalProductos">S/ 0.00</span>
+                </div>
+                <div class="pago-resumen-item">
+                    <span class="pago-label">Total a Pagar:</span>
+                    <span class="pago-total" id="pagoTotal">S/ 0.00</span>
+                </div>
+                <p class="pago-nota">Serás redirigido a Pagos y Comprobantes para confirmar. La cuenta se cerrará al confirmar el pago.</p>
+            </div>
+            <div id="pagoPromoInfo" class="cuenta-promo cuenta-promo-row" style="display:none; margin-top:1rem">
+                <div class="cuenta-promo-left">
+                    <svg class="cuenta-promo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    <span id="pagoPromoNombre">Descuento</span>
+                </div>
+                <span class="promo-amount" id="pagoPromoMonto">S/ 0.00</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModalPago(event)">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="confirmarPago()">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Confirmar Pago
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.page-container{padding:2rem;max-width:1400px;margin:0 auto;background:#f8f9fa;min-height:100vh}
+.page-header{margin-bottom:2rem}
+.page-header-content{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.page-title-group{display:flex;align-items:center;gap:.75rem}
+.page-icon{width:2rem;height:2rem;color:#7c3aed}
+.page-title{font-size:1.875rem;font-weight:700;color:#1f2937;margin:0}
+
+.btn-primary{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;background:#7c3aed;color:#fff;border:none;border-radius:.5rem;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .2s;box-shadow:0 1px 3px 0 rgba(124,58,237,.2);white-space:nowrap}
+.btn-primary:hover{background:#6d28d9;box-shadow:0 4px 6px -1px rgba(124,58,237,.3);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.btn-icon{width:1.25rem;height:1.25rem}
+.w-full{width:100%}
+
+.search-container{margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;background:#fff;padding:1.25rem;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.05);flex-wrap:wrap}
+.search-wrapper{position:relative;flex:1;min-width:280px}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:1.25rem;height:1.25rem;color:#9ca3af;pointer-events:none}
+.search-input{width:100%;padding:.75rem .75rem .75rem 3rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.875rem;transition:all .2s}
+.search-input:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+
+.form-checkbox-inline{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none}
+.form-checkbox-inline input[type="checkbox"]{width:1.25rem;height:1.25rem;cursor:pointer;accent-color:#7c3aed}
+.checkbox-label{font-size:.875rem;color:#374151;font-weight:500;white-space:nowrap}
+
+.cuentas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.5rem}
+
+.cuenta-card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.05);border:1px solid #e5e7eb;overflow:hidden;transition:all .2s;display:flex;flex-direction:column;position:relative}
+.cuenta-card:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,.1);transform:translateY(-2px);border-color:#7c3aed}
+.cuenta-card.hidden{display:none}
+
+.cuenta-cancel-btn{position:absolute;top:.75rem;right:.75rem;width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border:none;background:rgba(239,68,68,.1);color:#ef4444;border-radius:50%;cursor:pointer;transition:all .2s;z-index:10;opacity:0}
+.cuenta-card:hover .cuenta-cancel-btn{opacity:1}
+.cuenta-cancel-btn:hover{background:#ef4444;color:#fff;transform:rotate(90deg)}
+.cuenta-cancel-btn svg{width:1.125rem;height:1.125rem}
+
+.cuenta-card-header{padding:1.25rem;border-bottom:1px solid #f3f4f6}
+.cuenta-header-row{display:flex;justify-content:space-between;align-items:start;gap:1rem;margin-bottom:.75rem}
+.cuenta-info-principal{flex:1}
+.cuenta-card-title{font-size:1.25rem;font-weight:700;color:#1f2937;margin:0 0 .375rem;line-height:1.3}
+.cuenta-card-subtitle{font-size:.875rem;color:#6b7280;margin:.25rem 0 0;line-height:1.5}
+.cuenta-card-dni{font-size:.875rem;color:#6b7280;margin:0 0 .25rem;font-weight:500}
+.cuenta-card-numero{font-size:.8125rem;color:#7c3aed;margin:0;font-weight:600;background:rgba(124,58,237,.1);display:inline-block;padding:.25rem .625rem;border-radius:.375rem}
+.cuenta-dates{display:flex;flex-direction:column;gap:.375rem}
+.cuenta-date{display:flex;align-items:center;gap:.375rem;font-size:.75rem;color:#6b7280}
+.cuenta-icon{width:1rem;height:1rem}
+
+.cuenta-card-body{padding:1.25rem;flex:1}
+.cuenta-totals{display:flex;flex-direction:column;gap:.75rem;padding:1rem;background:#f9fafb;border-radius:.5rem;border:1px solid #e5e7eb}
+.cuenta-total-item{display:flex;justify-content:space-between;align-items:center}
+.cuenta-total-label{font-size:.875rem;color:#6b7280;font-weight:500}
+.cuenta-total-value{font-size:.9375rem;font-weight:600;color:#1f2937}
+.cuenta-descuento{color:#ef4444}
+.cuenta-total-main{padding-top:.75rem;border-top:2px solid#e5e7eb;margin-top:.5rem}
+.cuenta-total-main .cuenta-total-label{font-size:.9375rem;font-weight:700;color:#1f2937}
+.cuenta-total-amount{color:#10b981;font-size:1.25rem}
+
+.cuenta-promo{display:flex;align-items:center;gap:.5rem;padding:.75rem;background:#ede9fe;border-radius:.5rem;margin-top:1rem}
+.cuenta-promo-row{justify-content:space-between}
+.cuenta-promo-left{display:flex;align-items:center;gap:.5rem}
+.cuenta-promo-icon{width:1.125rem;height:1.125rem;color:#7c3aed;flex-shrink:0}
+.cuenta-promo span{font-size:.875rem;color:#5b21b6;font-weight:500}
+.promo-amount{font-size:.875rem;color:#5b21b6;font-weight:700}
+
+.cuenta-card-footer{padding:1rem 1.25rem;background:#f9fafb;border-top:1px solid #e5e7eb;display:flex;gap:.5rem;flex-wrap:wrap}
+
+.btn-card{display:flex;align-items:center;justify-content:center;gap:.375rem;padding:.625rem 1rem;border:none;border-radius:.375rem;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .15s;flex:1;min-width:fit-content}
+.btn-card svg{width:1.125rem;height:1.125rem}
+.btn-view{background:#eff6ff;color:#2563eb}
+.btn-view:hover{background:#dbeafe;color:#1e40af}
+.btn-add{background:#f0fdf4;color:#16a34a}
+.btn-add:hover{background:#dcfce7;color:#15803d}
+.btn-pay{background:#fef3c7;color:#d97706;font-weight:700}
+.btn-pay:hover{background:#fde68a;color:#b45309;transform:scale(1.02)}
+
+.empty-state-full{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;background:#fff;border-radius:.75rem;border:2px dashed#e5e7eb}
+.empty-icon{width:4rem;height:4rem;color:#d1d5db;margin-bottom:1rem}
+.empty-title{font-size:1.25rem;font-weight:700;color:#6b7280;margin-bottom:.5rem}
+.empty-subtitle{font-size:.875rem;color:#9ca3af;margin-bottom:1.5rem}
+
+.badge{display:inline-flex;align-items:center;gap:.375rem;padding:.375rem .75rem;border-radius:9999px;font-size:.75rem;font-weight:700;line-height:1;white-space:nowrap}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.badge-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+
+@@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:99999;display:flex;flex-direction:column;gap:.75rem;pointer-events:none}
+.toast{background:#fff;border-radius:.75rem;padding:1rem 1.25rem;min-width:320px;max-width:420px;box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);display:flex;align-items:start;gap:1rem;pointer-events:all;animation:slideInRight .3s ease-out;border-left:4px solid #10b981}
+.toast.toast-success{border-left-color:#10b981}
+.toast.toast-error{border-left-color:#ef4444}
+.toast.toast-warning{border-left-color:#f59e0b}
+.toast.toast-info{border-left-color:#3b82f6}
+.toast-icon{flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.toast-success .toast-icon{background:#d1fae5;color:#059669}
+.toast-error .toast-icon{background:#fee2e2;color:#dc2626}
+.toast-warning .toast-icon{background:#fef3c7;color:#d97706}
+.toast-info .toast-icon{background:#dbeafe;color:#2563eb}
+.toast-content{flex:1}
+.toast-title{font-weight:700;font-size:.875rem;color:#1f2937;margin-bottom:.25rem}
+.toast-message{font-size:.8125rem;color:#6b7280;line-height:1.4}
+.toast-close{flex-shrink:0;width:1.5rem;height:1.5rem;border:none;background:transparent;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:.25rem;transition:all .15s}
+.toast-close:hover{background:#f3f4f6;color:#1f2937}
+.toast-close svg{width:1rem;height:1rem}
+@@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@@keyframes slideOutRight{to{transform:translateX(120%);opacity:0}}
+.toast.toast-removing{animation:slideOutRight .3s ease-out forwards}
+
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-content-box{background:#fff;border-radius:.75rem;max-width:36rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.2)}
+.modal-content-box-sm{background:#fff;border-radius:.75rem;max-width:28rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.2)}
+.modal-content-box-lg{background:#fff;border-radius:.75rem;max-width:56rem;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.5rem;border-bottom:1px solid#e5e7eb;background:#f9fafb}
+.modal-title{display:flex;align-items:center;gap:.75rem;font-size:1.25rem;font-weight:700;color:#1f2937;margin:0}
+.modal-icon{width:1.5rem;height:1.5rem;color:#7c3aed}
+.btn-close{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border:none;background:transparent;border-radius:.5rem;color:#6b7280;cursor:pointer;transition:all .15s}
+.btn-close:hover{background:#e5e7eb;color:#1f2937}
+.btn-close svg{width:1.25rem;height:1.25rem}
+
+.modal-form{display:flex;flex-direction:column}
+.modal-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.5rem}
+.form-label{font-size:.875rem;font-weight:600;color:#374151;display:flex;align-items:center;gap:.25rem}
+.required{color:#ef4444}
+.form-hint{font-weight:400;color:#6b7280;font-size:.75rem}
+.form-input,.form-select{width:100%;padding:.75rem;border:1px solid#d1d5db;border-radius:.5rem;font-size:.875rem;color:#1f2937;transition:all .15s;background:#fff;font-family:inherit}
+.form-input:focus,.form-select:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+
+.autocomplete-wrapper{position:relative}
+.autocomplete-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);width:1.25rem;height:1.25rem;color:#9ca3af;pointer-events:none;z-index:1}
+.form-input-search{width:100%;padding:.75rem .75rem .75rem 3rem;border:1px solid#d1d5db;border-radius:.5rem;font-size:.875rem;color:#1f2937;transition:all .15s;background:#fff}
+.form-input-search:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.autocomplete-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid#d1d5db;border-top:none;border-radius:0 0 .5rem .5rem;max-height:200px;overflow-y:auto;z-index:10;display:none;box-shadow:0 4px 6px -1px rgba(0,0,0,.1)}
+.autocomplete-results.active{display:block}
+.autocomplete-item{padding:.75rem 1rem;cursor:pointer;transition:background .15s;font-size:.875rem;border-bottom:1px solid#f3f4f6}
+.autocomplete-item:hover{background:#f9fafb}
+.autocomplete-item:last-child{border-bottom:none}
+.autocomplete-item-main{font-weight:600;color:#1f2937}
+.autocomplete-item-sub{font-size:.75rem;color:#6b7280;margin-top:.25rem}
+.autocomplete-item-stock{display:inline-block;padding:.125rem .5rem;border-radius:.25rem;font-size:.75rem;font-weight:600;margin-left:.5rem}
+.stock-low{background:#fee2e2;color:#dc2626}
+.stock-medium{background:#fef3c7;color:#d97706}
+.stock-good{background:#d1fae5;color:#059669}
+.selected-display{margin-top:.5rem;padding:.75rem;background:#f0fdf4;border:1px solid#86efac;border-radius:.5rem;display:none}
+.selected-display.active{display:block}
+.selected-display-main{font-weight:600;color:#15803d;font-size:.875rem}
+.selected-display-sub{font-size:.75rem;color:#16a34a;margin-top:.25rem}
+.selected-display-clear{display:inline-flex;align-items:center;gap:.25rem;font-size:.75rem;color:#dc2626;cursor:pointer;margin-top:.375rem;font-weight:600}
+.selected-display-clear:hover{text-decoration:underline}
+
+.modal-footer{display:flex;justify-content:flex-end;gap:.75rem;padding:1rem 1.5rem;border-top:1px solid#e5e7eb;background:#f9fafb}
+.btn-secondary{padding:.75rem 1.25rem;border:1px solid#d1d5db;background:#fff;color:#374151;border-radius:.5rem;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{background:#f3f4f6;border-color:#9ca3af}
+
+.tabs-mini{display:flex;gap:.5rem;border-bottom:2px solid#e5e7eb;margin-bottom:1.5rem}
+.tab-mini{padding:.75rem 1.25rem;background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;color:#6b7280;font-weight:600;font-size:.875rem;cursor:pointer;transition:all .2s;border-radius:.5rem .5rem 0 0}
+.tab-mini:hover{color:#1f2937;background:#f9fafb}
+.tab-mini.active{color:#7c3aed;border-bottom-color:#7c3aed;background:#fff}
+
+.tab-content-mini{display:none}
+.tab-content-mini.active{display:block}
+
+.consumo-form{display:flex;flex-direction:column;gap:1rem}
+
+.detalle-section{margin-bottom:2rem}
+.detalle-section:last-child{margin-bottom:0}
+.detalle-section-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:2px solid#e5e7eb}
+.detalle-section-icon{width:1.5rem;height:1.5rem;color:#7c3aed}
+.section-title{font-size:1rem;font-weight:700;color:#1f2937;margin:0}
+
+.detalles-table-wrapper{overflow-x:auto;border:1px solid#e5e7eb;border-radius:.5rem;background:#fff}
+.detalles-table{width:100%;border-collapse:collapse}
+.detalles-table thead{background:#f9fafb;border-bottom:2px solid#e5e7eb}
+.detalles-table th{padding:.875rem 1rem;text-align:left;font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em}
+.detalles-table td{padding:1rem;font-size:.875rem;color:#1f2937;border-top:1px solid#f3f4f6}
+.detalles-table tbody tr:hover{background:#f9fafb}
+.text-center{text-align:center !important}
+.text-right{text-align:right !important}
+.empty-row td{color:#9ca3af;font-style:italic;text-align:center}
+
+.btn-icon-sm{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:none;border-radius:.375rem;cursor:pointer;transition:all .15s;margin:0 .125rem}
+.btn-icon-sm svg{width:1rem;height:1rem}
+.btn-delete{background:#fef2f2;color:#ef4444}
+.btn-delete:hover{background:#fee2e2}
+.btn-edit{background:#eff6ff;color:#3b82f6}
+.btn-edit:hover{background:#dbeafe}
+.btn-return{background:#fef3c7;color:#f59e0b}
+.btn-return:hover{background:#fde68a}
+
+.pago-resumen{background:#f9fafb;border:2px solid#e5e7eb;border-radius:.5rem;padding:1.5rem}
+.pago-resumen-item{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.pago-label{font-size:1rem;font-weight:600;color:#374151}
+.pago-total{font-size:1.875rem;font-weight:700;color:#10b981}
+.pago-nota{font-size:.875rem;color:#6b7280;line-height:1.5;padding-top:1rem;border-top:1px solid#e5e7eb}
+
+@@media (max-width:768px){
+.page-container{padding:1rem}
+.search-container{flex-direction:column;align-items:stretch;padding:1rem}
+.search-wrapper{min-width:100%}
+.cuentas-grid{grid-template-columns:1fr;gap:1rem}
+.form-row{grid-template-columns:1fr}
+.cuenta-card-footer{flex-direction:column}
+.btn-card{width:100%}
+}
+</style>
+}
+
+@section Scripts {
+<script>
+// Data
+const clientesData = @Html.Raw(Json.Serialize(Model.Clientes.Select(c => new { 
+    id = c.ClienteID, 
+    nombre = c.Nombre + " " + c.Apellido, 
+    dni = c.NumeroDocumento 
+})));
+
+const productosData = @Html.Raw(Json.Serialize(Model.Productos.Select(p => new { 
+    id = p.IdProducto, 
+    nombre = p.Nombre, 
+    precio = p.Precio, 
+    stock = p.StockActual 
+})));
+
+let selectedCliente = null;
+let selectedProducto = null;
+let currentStockMax = 999;
+
+// ============================================
+// SISTEMA DE NOTIFICACIONES TOAST
+// ============================================
+function showToast(message, type = 'success', title = null) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const titles = {
+        success: title || '¡Éxito!',
+        error: title || 'Error',
+        warning: title || 'Advertencia',
+        info: title || 'Información'
+    };
+    
+    const icons = {
+        success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
+        error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
+        warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
+        info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ${icons[type]}
+            </svg>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">${titles[type]}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="removeToast(this)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    setTimeout(() => removeToast(toast.querySelector('.toast-close')), 5000);
+}
+
+function removeToast(btn) {
+    const toast = btn.closest('.toast');
+    toast.classList.add('toast-removing');
+    setTimeout(() => toast.remove(), 300);
+}
+
+// ============================================
+// BÚSQUEDA EN GRID DE CUENTAS
+// ============================================
+let searchTimeout;
+document.getElementById('searchCuentas')?.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const term = e.target.value.toLowerCase().trim();
+    
+    searchTimeout = setTimeout(() => {
+        const cards = document.querySelectorAll('.cuenta-card');
+        
+        cards.forEach(card => {
+            const searchData = card.getAttribute('data-search');
+            if (!term || searchData.includes(term)) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }, 300);
+});
+
+function toggleAbiertas(checked){
+    const url=new URL(window.location.href);
+    url.searchParams.set('SoloAbiertas', checked ? 'true' : 'false');
+    window.location.href=url.toString();
+}
+
+// ============================================
+// CANCELAR CUENTA
+// ============================================
+async function cancelarCuenta(id) {
+    if(!confirm('¿Cancelar esta cuenta?\n\nEsta acción eliminará la cuenta y todos sus consumos.')) return;
+    
+    try{
+        const res = await fetch(`?handler=CancelarCuenta&id=${id}`, {method:'POST'});
+        const data = await res.json();
+        
+        if(data.success){
+            showToast('Cuenta cancelada exitosamente', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }else{
+            showToast(data.message || 'Error al cancelar la cuenta', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+}
+
+// ============================================
+// MODAL CREAR CUENTA
+// ============================================
+function openCreateCuenta(){
+    document.getElementById('modalCrearCuenta').classList.add('active');
+    document.body.style.overflow='hidden';
+    document.getElementById('searchCliente').value = '';
+    document.getElementById('selectedClienteId').value = '';
+    document.getElementById('selectedClienteDisplay').classList.remove('active');
+    selectedCliente = null;
+}
+
+function closeModalCrearCuenta(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalCrearCuenta').classList.remove('active');
+    document.body.style.overflow='';
+}
+
+document.getElementById('searchCliente')?.addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase().trim();
+    const results = document.getElementById('clienteResults');
+    
+    if(term.length < 2) {
+        results.classList.remove('active');
+        return;
+    }
+    
+    const filtered = clientesData.filter(c => 
+        c.nombre.toLowerCase().includes(term) || 
+        c.dni.includes(term)
+    );
+    
+    if(filtered.length > 0) {
+        results.innerHTML = filtered.slice(0, 5).map(c => `
+            <div class="autocomplete-item" onclick="selectCliente(${c.id}, '${c.nombre}', '${c.dni}')">
+                <div class="autocomplete-item-main">${c.nombre}</div>
+                <div class="autocomplete-item-sub">DNI: ${c.dni}</div>
+            </div>
+        `).join('');
+        results.classList.add('active');
+    } else {
+        results.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-sub">No se encontraron resultados</div></div>';
+        results.classList.add('active');
+    }
+});
+
+function selectCliente(id, nombre, dni) {
+    selectedCliente = {id, nombre, dni};
+    document.getElementById('selectedClienteId').value = id;
+    document.getElementById('searchCliente').value = '';
+    document.getElementById('clienteResults').classList.remove('active');
+    
+    const display = document.getElementById('selectedClienteDisplay');
+    display.innerHTML = `
+        <div class="selected-display-main">${nombre}</div>
+        <div class="selected-display-sub">DNI: ${dni}</div>
+        <div class="selected-display-clear" onclick="clearCliente()">
+            <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Cambiar cliente
+        </div>
+    `;
+    display.classList.add('active');
+}
+
+function clearCliente() {
+    selectedCliente = null;
+    document.getElementById('selectedClienteId').value = '';
+    document.getElementById('selectedClienteDisplay').classList.remove('active');
+    document.getElementById('searchCliente').focus();
+}
+
+document.getElementById('formCrearCuenta')?.addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    
+    if(!selectedCliente) {
+        showToast('Por favor seleccione un cliente', 'warning');
+        return;
+    }
+    
+    const form=e.target;
+    const btn=document.getElementById('btnCrearCuenta');
+    const txt=document.getElementById('btnCrearCuentaText');
+    btn.disabled=true;txt.textContent='Guardando...';
+    const fd=new FormData(form);
+    
+    try{
+        const res=await fetch('?handler=CrearCuentaAjax',{method:'POST',body:fd});
+        const data=await res.json();
+        if(!data.success){
+            showToast((data.errors||['Error al crear']).join(', '), 'error');
+            btn.disabled=false;txt.textContent='Crear Cuenta';
+            return;
+        }
+        showToast('Cuenta creada exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+    }catch(err){
+        showToast('Error de conexión', 'error');
+        btn.disabled=false;txt.textContent='Crear Cuenta';
+    }
+});
+
+// ============================================
+// MODAL AGREGAR CONSUMO
+// ============================================
+function agregarConsumo(idCuenta){
+    document.getElementById('cuentaIdConsumo').value=idCuenta;
+    document.getElementById('modalAgregarConsumo').classList.add('active');
+    document.body.style.overflow='hidden';
+    
+    document.getElementById('searchProducto').value = '';
+    document.getElementById('selectedProductoId').value = '';
+    document.getElementById('selectedProductoDisplay').classList.remove('active');
+    document.getElementById('cantidadProducto').value = 1;
+    document.getElementById('precioProducto').value = '';
+    selectedProducto = null;
+}
+
+function closeModalAgregarConsumo(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalAgregarConsumo').classList.remove('active');
+    document.body.style.overflow='';
+}
+
+function switchConsumoTab(tab){
+    const tabs=document.querySelectorAll('.tab-mini');
+    const contents=document.querySelectorAll('.tab-content-mini');
+    tabs.forEach(t=>t.classList.remove('active'));
+    contents.forEach(c=>c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+}
+
+document.getElementById('selectServicio')?.addEventListener('change', function(){
+    const option=this.options[this.selectedIndex];
+    const precio=option.getAttribute('data-precio');
+    if(precio) document.getElementById('precioServicio').value=precio;
+});
+
+document.getElementById('searchProducto')?.addEventListener('input', async function(e) {
+    const term = e.target.value.toLowerCase().trim();
+    const results = document.getElementById('productoResults');
+    if(term.length < 2) { results.classList.remove('active'); return; }
+    try{
+        const res = await fetch(`?handler=BuscarProductos&term=${encodeURIComponent(term)}`, { credentials:'same-origin', headers:{ 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' } });
+        const data = await res.json();
+        const list = (data.productos||[]).slice(0, 5);
+        if(list.length > 0){
+            results.innerHTML = list.map(p => {
+                let stockClass = 'stock-good';
+                const stock = Number(p.stockActual||0);
+                const precio = Number(p.precio||0);
+                if(stock < 10) stockClass = 'stock-low';
+                else if(stock < 20) stockClass = 'stock-medium';
+                return `
+                    <div class="autocomplete-item" onclick="selectProducto(${p.idProducto}, '${String(p.nombre).replace(/'/g, "\\'")}', ${precio}, ${stock})">
+                        <div class="autocomplete-item-main">
+                            ${p.nombre} - S/ ${precio.toFixed(2)}
+                            <span class="autocomplete-item-stock ${stockClass}">Stock: ${stock}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            results.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-sub">No se encontraron productos</div></div>';
+        }
+        results.classList.add('active');
+    }catch(err){
+        results.innerHTML = '<div class="autocomplete-item"><div class="autocomplete-item-sub">Error al buscar</div></div>';
+        results.classList.add('active');
+    }
+});
+
+function selectProducto(id, nombre, precio, stock) {
+    selectedProducto = {id, nombre, precio, stock};
+    currentStockMax = stock;
+    
+    document.getElementById('selectedProductoId').value = id;
+    document.getElementById('precioProducto').value = precio;
+    document.getElementById('searchProducto').value = '';
+    document.getElementById('productoResults').classList.remove('active');
+    document.getElementById('cantidadProducto').max = stock;
+    
+    const display = document.getElementById('selectedProductoDisplay');
+    let stockClass = 'stock-good';
+    if(stock < 10) stockClass = 'stock-low';
+    else if(stock < 20) stockClass = 'stock-medium';
+    
+    display.innerHTML = `
+        <div class="selected-display-main">${nombre} - S/ ${precio.toFixed(2)}</div>
+        <div class="selected-display-sub">
+            <span class="autocomplete-item-stock ${stockClass}">Stock disponible: ${stock}</span>
+        </div>
+        <div class="selected-display-clear" onclick="clearProducto()">
+            <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Cambiar producto
+        </div>
+    `;
+    display.classList.add('active');
+}
+
+function clearProducto() {
+    selectedProducto = null;
+    document.getElementById('selectedProductoId').value = '';
+    document.getElementById('selectedProductoDisplay').classList.remove('active');
+    document.getElementById('precioProducto').value = '';
+    document.getElementById('cantidadProducto').value = 1;
+    document.getElementById('searchProducto').focus();
+}
+
+document.getElementById('formServicio')?.addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    const form=e.target;
+    const idCuenta=document.getElementById('cuentaIdConsumo').value;
+    const fd=new FormData(form);
+    fd.append('IdCuenta',idCuenta);
+    
+    try{
+        const res=await fetch('?handler=AgregarServicioAjax',{method:'POST',body:fd});
+        const data=await res.json();
+        if(data.success){
+            showToast('Servicio agregado exitosamente', 'success');
+            form.reset();
+            actualizarTotalesCuenta(idCuenta,data.cuenta);
+        }else{
+            showToast((data.errors||['Error']).join(', '), 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+});
+
+document.getElementById('formProducto')?.addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    
+    if(!selectedProducto) {
+        showToast('Por favor seleccione un producto', 'warning');
+        return;
+    }
+    
+    const cantidad = parseInt(document.getElementById('cantidadProducto').value);
+    if(cantidad > currentStockMax) {
+        showToast(`Stock insuficiente. Disponible: ${currentStockMax}`, 'warning');
+        return;
+    }
+    
+    const form=e.target;
+    const idCuenta=document.getElementById('cuentaIdConsumo').value;
+    const fd=new FormData(form);
+    fd.append('IdCuenta',idCuenta);
+    
+    try{
+        const res=await fetch('?handler=AgregarProductoAjax',{method:'POST',body:fd});
+        const data=await res.json();
+        if(data.success){
+            showToast('Producto agregado exitosamente', 'success');
+            form.reset();
+            clearProducto();
+            actualizarTotalesCuenta(idCuenta,data.cuenta);
+        }else{
+            showToast((data.errors||['Error']).join(', '), 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+});
+
+// ============================================
+// MODAL VER DETALLES
+// ============================================
+async function verDetalles(idCuenta){
+    document.getElementById('cuentaIdDetalles').value=idCuenta;
+    document.getElementById('modalVerDetalles').classList.add('active');
+    document.body.style.overflow='hidden';
+    
+    try{
+        const res=await fetch(`?handler=ObtenerDetalles&id=${idCuenta}`, { credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'} });
+        const data=await res.json();
+        
+        if(data.success){
+            const tbodyS=document.getElementById('tbodyServicios');
+            const tbodyP=document.getElementById('tbodyProductos');
+            
+            tbodyS.innerHTML=(data.servicios && data.servicios.length) ? data.servicios.map(s=>`
+                <tr>
+                    <td><strong>${s.servicioNombre||'N/A'}</strong></td>
+                    <td class="text-center">${Number(s.cantidad||0)}</td>
+                    <td class="text-right">S/ ${Number(s.precioUnitario||0).toFixed(2)}</td>
+                    <td class="text-right"><strong>S/ ${Number(s.subtotal||0).toFixed(2)}</strong></td>
+                    <td class="text-center">
+                        <button class="btn-icon-sm btn-delete" onclick="eliminarServicio(${s.idDetalleServicio},${idCuenta})" title="Eliminar">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('') : '<tr class="empty-row"><td colspan="5">No hay servicios registrados</td></tr>';
+            
+            tbodyP.innerHTML=(data.productos && data.productos.length) ? data.productos.map(p=>`
+                <tr>
+                    <td><strong>${p.productoNombre||'N/A'}</strong></td>
+                    <td class="text-center">${Number(p.cantidad||0)}</td>
+                    <td class="text-right">S/ ${Number(p.precioUnitario||0).toFixed(2)}</td>
+                    <td class="text-right"><strong>S/ ${Number(p.subtotal||0).toFixed(2)}</strong></td>
+                    <td class="text-center">
+                        <button class="btn-icon-sm btn-return" onclick="abrirDevolucion(${p.idDetalle},${idCuenta},${p.cantidad})" title="Devolver">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                            </svg>
+                        </button>
+                        <button class="btn-icon-sm btn-delete" onclick="eliminarProducto(${p.idDetalle},${idCuenta})" title="Eliminar">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('') : '<tr class="empty-row"><td colspan="5">No hay productos registrados</td></tr>';
+        }
+    }catch(err){
+        showToast('Error al cargar detalles', 'error');
+    }
+}
+
+function closeModalVerDetalles(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalVerDetalles').classList.remove('active');
+    document.body.style.overflow='';
+}
+
+// ============================================
+// EDITAR CANTIDAD
+// ============================================
+function editarCantidadProducto(idDetalle, idCuenta, cantidadActual) {
+    document.getElementById('editDetalleId').value = idDetalle;
+    document.getElementById('editCuentaId').value = idCuenta;
+    document.getElementById('editNuevaCantidad').value = cantidadActual;
+    document.getElementById('modalEditarCantidad').classList.add('active');
+}
+
+function abrirDevolucion(idDetalle, idCuenta, cantidadActual){
+    document.getElementById('devDetalleId').value = idDetalle;
+    document.getElementById('devCuentaId').value = idCuenta;
+    const input = document.getElementById('devCantidad');
+    input.value = 1;
+    input.max = Number(cantidadActual||1);
+    document.getElementById('modalDevolverCantidad').classList.add('active');
+}
+
+function closeModalDevolverCantidad(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalDevolverCantidad').classList.remove('active');
+}
+
+document.getElementById('formDevolverCantidad')?.addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    const idDetalle = document.getElementById('devDetalleId').value;
+    const idCuenta = document.getElementById('devCuentaId').value;
+    const cant = Number(document.getElementById('devCantidad').value||0);
+    if(cant<=0){ showToast('Cantidad inválida','warning'); return; }
+    try{
+        const res = await fetch(`?handler=DevolverParcial&id=${idDetalle}&cantidad=${cant}&idCuenta=${idCuenta}`, { method:'POST' });
+        const data = await res.json();
+        if(data.success){
+            showToast('Devolución registrada', 'success');
+            closeModalDevolverCantidad();
+            verDetalles(idCuenta);
+            actualizarTotalesCuenta(idCuenta, data.cuenta);
+        }else{
+            showToast(data.message||'Error al devolver', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión','error');
+    }
+});
+
+function closeModalEditarCantidad(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalEditarCantidad').classList.remove('active');
+}
+
+document.getElementById('formEditarCantidad')?.addEventListener('submit', async(e)=>{
+    e.preventDefault();
+    
+    const idDetalle = document.getElementById('editDetalleId').value;
+    const idCuenta = document.getElementById('editCuentaId').value;
+    const nuevaCantidad = document.getElementById('editNuevaCantidad').value;
+    
+    try{
+        const res = await fetch(`?handler=EditarCantidadProducto&id=${idDetalle}&cantidad=${nuevaCantidad}&idCuenta=${idCuenta}`, {method:'POST'});
+        const data = await res.json();
+        
+        if(data.success){
+            showToast('Cantidad actualizada exitosamente', 'success');
+            closeModalEditarCantidad();
+            verDetalles(idCuenta);
+            actualizarTotalesCuenta(idCuenta, data.cuenta);
+        }else{
+            showToast('Error al actualizar cantidad', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+});
+
+// ============================================
+// DEVOLUCIÓN
+// ============================================
+async function devolverProducto(id, idCuenta) {
+    if(!confirm('¿Devolver este producto?\n\nSe reintegrará el monto y se devolverá al stock.')) return;
+    
+    try{
+        const res = await fetch(`?handler=DevolverProducto&id=${id}&idCuenta=${idCuenta}`, {method:'POST'});
+        const data = await res.json();
+        
+        if(data.success){
+            showToast('Producto devuelto exitosamente', 'success');
+            verDetalles(idCuenta);
+            actualizarTotalesCuenta(idCuenta, data.cuenta);
+        }else{
+            showToast('Error al devolver producto', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+}
+
+// ============================================
+// ELIMINAR
+// ============================================
+async function eliminarServicio(id,idCuenta){
+    if(!confirm('¿Eliminar este servicio?')) return;
+    
+    try{
+        const res=await fetch(`?handler=EliminarServicio&id=${id}&idCuenta=${idCuenta}`,{method:'POST'});
+        const data=await res.json();
+        if(data.success){
+            showToast('Servicio eliminado', 'success');
+            verDetalles(idCuenta);
+            actualizarTotalesCuenta(idCuenta,data.cuenta);
+        }else{
+            showToast('Error al eliminar', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+}
+
+async function eliminarProducto(id,idCuenta){
+    if(!confirm('¿Eliminar este producto?')) return;
+    
+    try{
+        const res=await fetch(`?handler=EliminarProducto&id=${id}&idCuenta=${idCuenta}`,{method:'POST'});
+        const data=await res.json();
+        if(data.success){
+            showToast('Producto eliminado', 'success');
+            verDetalles(idCuenta);
+            actualizarTotalesCuenta(idCuenta,data.cuenta);
+        }else{
+            showToast('Error al eliminar', 'error');
+        }
+    }catch(err){
+        showToast('Error de conexión', 'error');
+    }
+}
+
+// ============================================
+// PAGAR
+// ============================================
+function pagarCuenta(id) {
+    const card = document.querySelector(`.cuenta-card[data-id="${id}"]`);
+    const getNum = (v) => parseFloat(String(v||'0').replace(',', '.')) || 0;
+
+    const ss = getNum(card?.getAttribute('data-subtotal-servicios'));
+    const sp = getNum(card?.getAttribute('data-subtotal-productos'));
+    const tot = getNum(card?.getAttribute('data-total'));
+
+    document.getElementById('pagoIdCuenta').value = id;
+    document.getElementById('pagoSubtotalServicios').textContent = `S/ ${ss.toFixed(2)}`;
+    document.getElementById('pagoSubtotalProductos').textContent = `S/ ${sp.toFixed(2)}`;
+    document.getElementById('pagoTotal').textContent = `S/ ${tot.toFixed(2)}`;
+    document.getElementById('modalPago').classList.add('active');
+
+    const promoNombre = card?.getAttribute('data-promo-nombre') || '';
+    const promoMonto = getNum(card?.getAttribute('data-promo-monto'));
+    const promoInfo = document.getElementById('pagoPromoInfo');
+    const promoNombreEl = document.getElementById('pagoPromoNombre');
+    const promoMontoEl = document.getElementById('pagoPromoMonto');
+    if(promoNombre && promoMonto > 0){
+        promoNombreEl.textContent = promoNombre;
+        promoMontoEl.textContent = `S/ ${promoMonto.toFixed(2)}`;
+        promoInfo.style.display = 'flex';
+    }else{
+        promoInfo.style.display = 'none';
+    }
+}
+
+function closeModalPago(e){
+    e?.preventDefault();e?.stopPropagation();
+    document.getElementById('modalPago').classList.remove('active');
+}
+
+async function confirmarPago() {
+    const id = document.getElementById('pagoIdCuenta').value;
+    closeModalPago();
+    window.location.href = `/PagosComprobar?cuentaId=${id}`;
+}
+
+// ============================================
+// ACTUALIZAR TOTALES
+// ============================================
+function actualizarTotalesCuenta(idCuenta,cuenta){
+    const card=document.querySelector(`.cuenta-card[data-id="${idCuenta}"]`);
+    if(!card) return;
+    
+    const totals=card.querySelector('.cuenta-totals');
+    if(totals){
+        const values = totals.querySelectorAll('.cuenta-total-value');
+        const ss = totals.querySelector('.subtotal-servicios');
+        const sp = totals.querySelector('.subtotal-productos');
+        const subServicios = Number(cuenta.subtotalServicios||0);
+        const subProductos = Number(cuenta.subtotalProductos||0);
+        const total = Number(cuenta.total||0);
+        if(ss) ss.textContent=`S/ ${subServicios.toFixed(2)}`;
+        if(sp) sp.textContent=`S/ ${subProductos.toFixed(2)}`;
+        const descEl = totals.querySelector('.cuenta-descuento');
+        const descuento = Number((cuenta.promocionMontoDescuento ?? cuenta.descuento) || 0);
+        if(descEl) descEl.textContent=`-S/ ${descuento.toFixed(2)}`;
+        const totalAmount = totals.querySelector('.cuenta-total-amount');
+        if(totalAmount) totalAmount.textContent=`S/ ${total.toFixed(2)}`;
+
+        // Actualizar atributos de datos para el modal de pago
+        card.setAttribute('data-subtotal-servicios', subServicios.toFixed(2));
+        card.setAttribute('data-subtotal-productos', subProductos.toFixed(2));
+        card.setAttribute('data-total', total.toFixed(2));
+        card.setAttribute('data-promo-monto', descuento.toFixed(2));
+    }
+}
+
+// ============================================
+// EVENTOS GLOBALES
+// ============================================
+document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+        closeModalCrearCuenta(e);
+        closeModalAgregarConsumo(e);
+        closeModalVerDetalles(e);
+        closeModalEditarCantidad(e);
+        closeModalPago(e);
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if(!e.target.closest('.autocomplete-wrapper')) {
+        document.querySelectorAll('.autocomplete-results').forEach(r => r.classList.remove('active'));
+    }
+});
+
+console.log('✅ Sistema de Cuentas completamente cargado');
+
+// Actualización de stock se hace consultando al servidor durante la búsqueda del producto
+</script>
+}

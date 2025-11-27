@@ -1,16 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using ProyectoSaunaKalixto.Web.Data;
 using ProyectoSaunaKalixto.Web.Domain.Repositories;
 using ProyectoSaunaKalixto.Web.Domain.Services;
-using ProyectoSaunaKalixto.Web.Domain.DTOs;
 using Xunit;
 
 namespace ProyetoSaunaKalixto.Tests
 {
-    public class PromocionTests
+    public class TipoDescuentoTests
     {
         private SaunaDbContext NewContext()
         {
@@ -21,20 +19,18 @@ namespace ProyetoSaunaKalixto.Tests
         }
 
         [Fact]
-        public async Task CrearYListarPromocion()
+        public async Task CrearYListarTipos()
         {
             using var ctx = NewContext();
             var promRepo = new PromocionRepository(ctx);
             var tipoRepo = new TipoDescuentoRepository(ctx);
-            // seed tipo
-            await tipoRepo.AddAsync(new ProyectoSaunaKalixto.Web.Domain.Models.TipoDescuento { Nombre = "General" });
             var svc = new PromocionService(promRepo, tipoRepo);
 
-            var tipos = await svc.TiposAsync();
-            var dto = new PromocionCreateDto { NombreDescuento = "Promo Test", MontoDescuento = 10, IdTipoDescuento = tipos.First().IdTipoDescuento };
-            var created = await svc.CrearAsync(dto);
-            var list = await svc.ListarAsync(null);
-            Assert.Contains(list, p => p.NombreDescuento == "Promo Test");
+            var t1 = await svc.CrearTipoAsync("General");
+            var t2 = await svc.CrearTipoAsync("Familia");
+            var list = await svc.TiposAsync();
+            Assert.Contains(list, t => t.Nombre == "General");
+            Assert.Contains(list, t => t.Nombre == "Familia");
         }
     }
 }

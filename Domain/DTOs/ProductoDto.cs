@@ -10,6 +10,7 @@ namespace ProyectoSaunaKalixto.Web.Domain.DTOs
         public string? Descripcion { get; set; }
         public decimal PrecioCompra { get; set; }
         public decimal PrecioVenta { get; set; }
+        public decimal Precio => PrecioVenta;
         public int StockActual { get; set; }
         public int StockMinimo { get; set; }
         public int? IdCategoriaProducto { get; set; }
