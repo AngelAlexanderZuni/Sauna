@@ -791,36 +791,20 @@
         // Función para cargar formulario de crear egreso
         async function loadCreateEgresoForm() {
             try {
-                console.log('📥 Cargando formulario de creación...');
                 const response = await fetch('/Egresos/Index?handler=CreateModal', {
                     headers: {
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
                     }
                 });
                 const html = await response.text();
-                console.log('✅ HTML recibido, largo:', html.length);
-                
-                const modalContent = document.getElementById('modalContent');
-                console.log('📦 Contenedor modalContent:', modalContent);
-                
-                if (modalContent) {
-                    modalContent.innerHTML = html;
-                    console.log('✅ HTML insertado en modalContent');
-                }
-                
-                console.log('🔓 Intentando abrir modal...');
-                if (typeof Modal !== 'undefined') {
-                    Modal.open('crudModal');
-                } else {
-                    console.error('❌ Modal no está definido!');
-                }
+                document.getElementById('modalContent').innerHTML = html;
+                Modal.open('crudModal');
                 
                 // Agregar primer detalle después de abrir el modal
                 setTimeout(() => {
                     agregarDetalle();
                 }, 100);
             } catch (error) {
-                console.error('❌ Error al cargar formulario:', error);
                 mostrarNotificacion('Error al cargar el formulario', 'error');
             }
         }
