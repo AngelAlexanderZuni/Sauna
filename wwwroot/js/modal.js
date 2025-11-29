@@ -1,8 +1,9 @@
 // Sistema de modales estilo shadcn
-const Modal = {
+window.Modal = {
     open: function(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            console.log('🔓 Abriendo modal:', modalId);
             modal.classList.remove('hidden');
             document.body.classList.add('modal-open');
             
@@ -10,12 +11,15 @@ const Modal = {
             setTimeout(() => {
                 modal.querySelector('.modal-content')?.classList.add('modal-open');
             }, 10);
+        } else {
+            console.error('❌ Modal no encontrado:', modalId);
         }
     },
     
     close: function(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            console.log('🔒 Cerrando modal:', modalId);
             const content = modal.querySelector('.modal-content');
             content?.classList.remove('modal-open');
             
@@ -23,6 +27,8 @@ const Modal = {
                 modal.classList.add('hidden');
                 document.body.classList.remove('modal-open');
             }, 200);
+        } else {
+            console.error('❌ Modal no encontrado para cerrar:', modalId);
         }
     },
     

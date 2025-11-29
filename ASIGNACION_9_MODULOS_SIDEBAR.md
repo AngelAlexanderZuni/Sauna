@@ -14,21 +14,22 @@
 │     Panel Administrativo               │
 ├────────────────────────────────────────┤
 │ 📋 OPERACIONES                         │
-│ ✅ 1️⃣ Entradas y Consumos            │ → ANGEL ZUÑIGA
+│ ✅ 1️⃣ Entradas y Consumos            │ → ANGEL ZUÑIGA & JONATHAN PUMA
 │ ✅ 2️⃣ Pagos y Comprobantes           │ → NORMA ARANIBAR
-│ ✅ 3️⃣ Clientes                       │ → JONATHAN PUMA ✅ LISTO
+│ ✅ 3️⃣ Clientes                       │ → JONATHAN PUMA 
 ├────────────────────────────────────────┤
 │ 💰 FINANZAS E INVENTARIO               │
-│ ✅ 4️⃣ Caja y Flujo de Caja           │ → NORMA ARANIBAR
+│ ✅ 4️⃣ Caja y Flujo de Caja           │ → NORMA ARANIBAR & LUIS VEGA
 │ ✅ 5️⃣ Inventario                     │ → ANGEL ZUÑIGA
-│ ✅ 6️⃣ Egresos                        │ → NORMA ARANIBAR
+│ ✅ 6️⃣ Egresos                        │ → NORMA ARANIBAR       
+| ✅ 6️⃣ Servicios                      │ → JONATHAN PUMA
 ├────────────────────────────────────────┤
 │ 📊 REPORTES                            │
 │ ✅ 7️⃣ Reportes y Estadísticas        │ → LUIS VEGA
 ├────────────────────────────────────────┤
 │ ⚙️ CONFIGURACIÓN                       │
 │ ✅ 8️⃣ Usuarios                       │ → LUIS VEGA
-│ ✅ 9️⃣ Promociones                    │ → JONATHAN PUMA (Opcional)
+│ ✅ 9️⃣ Promociones                    │ → JONATHAN PUMA 
 └────────────────────────────────────────┘
 ```
 

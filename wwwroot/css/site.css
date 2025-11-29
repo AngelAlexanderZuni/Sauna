@@ -456,11 +456,15 @@ body {
     z-index: 50;
     background-color: rgba(0, 0, 0, 0.35);
     backdrop-filter: none;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
     overflow-y: auto;
+  }
+  
+  .modal-backdrop.hidden {
+    display: none;
   }
 
   .modal-content {
