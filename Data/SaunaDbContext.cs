@@ -33,6 +33,7 @@ namespace ProyectoSaunaKalixto.Web.Data
         public DbSet<TipoDescuento> TiposDescuento { get; set; }
         public DbSet<Promocion> Promociones { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

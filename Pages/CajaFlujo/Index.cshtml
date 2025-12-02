@@ -5,36 +5,1031 @@
     Layout = "_LayoutSidebar";
 }
 
+<form method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <div class="flex-1 overflow-auto">
-    <div class="p-6">
-        <div class="card">
-            <!-- Header -->
-            <div class="border-b px-6 py-4" style="border-color: var(--border);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold" style="color: var(--foreground);">Caja y Flujo de Caja</h2>
-                        <p class="text-sm mt-1" style="color: var(--muted-foreground);">Controla los movimientos de caja e ingresos</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white transition-colors" 
-                                style="background-color: var(--primary);">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    <div class="p-6 space-y-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight" style="color: var(--foreground);">Caja y Flujo de Caja</h2>
+                <p class="text-sm mt-1" style="color: var(--muted-foreground);">
+                    Consulta de movimientos financieros diarios y mensuales
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="cambiarVista('caja')" 
+                        id="btnVistaCaja"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border transition-all @(Model.VistaActual == "caja" ? "shadow-sm" : "hover:bg-muted/50")" 
+                        style="@(Model.VistaActual == "caja" ? "background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary);" : "border-color: var(--border); color: var(--foreground);")">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Caja Diaria
+                </button>
+                <button onclick="cambiarVista('flujo')" 
+                        id="btnVistaFlujo"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md border transition-all @(Model.VistaActual == "flujo" ? "shadow-sm" : "hover:bg-muted/50")" 
+                        style="@(Model.VistaActual == "flujo" ? "background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary);" : "border-color: var(--border); color: var(--foreground);")">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Flujo Mensual
+                </button>
+            </div>
+        </div>
+
+        <!-- Vista de Caja Diaria -->
+        <div id="vistaCaja" style="display: @(Model.VistaActual == "caja" ? "block" : "none")">
+            <!-- Barra de Búsqueda de Clientes y Selector de Fecha -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Búsqueda de Clientes -->
+                <div class="card">
+                    <div class="p-4">
+                        <label class="block text-xs font-medium mb-1.5" style="color: var(--foreground);">Buscar Cliente</label>
+                        <div class="relative">
+                            <input type="text" 
+                                   id="buscarCliente"
+                                   placeholder="Buscar por nombre o DNI..."
+                                   oninput="buscarClientes(this.value)"
+                                   class="w-full pl-10 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                                   style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
-                            Nuevo Movimiento
-                        </button>
+                        </div>
+                        <!-- Resultados de búsqueda -->
+                        <div id="resultadosBusqueda" class="mt-2 hidden">
+                            <div class="border rounded-md max-h-60 overflow-y-auto" style="border-color: var(--border); background-color: var(--background);">
+                                <!-- Los resultados se llenarán dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selector de Fecha -->
+                <div class="card">
+                    <div class="p-4">
+                        <label class="block text-xs font-medium mb-1.5" style="color: var(--foreground);">Fecha de Cierre</label>
+                        <div class="flex items-end gap-2">
+                            <input type="date" 
+                                   id="fechaCierre"
+                                   value="@Model.FechaSeleccionada.ToString("yyyy-MM-dd")"
+                                   onchange="actualizarCierre()"
+                                   class="flex-1 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                                   style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);">
+                            <button onclick="seleccionarHoy()" 
+                                    class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                                    style="border-color: var(--border); color: var(--foreground);">
+                                Hoy
+                            </button>
+                            <button onclick="mostrarHistorial()" 
+                                    class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                                    style="border-color: var(--border); color: var(--foreground);">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content -->
-            <div class="px-6 py-12 text-center">
-                <svg class="mx-auto h-12 w-12 mb-4" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 class="text-lg font-medium mb-2" style="color: var(--foreground);">Módulo en Desarrollo</h3>
-                <p class="text-sm" style="color: var(--muted-foreground);">Esta sección estará disponible próximamente</p>
+            <!-- Cards de Resumen -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="card p-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Total Ingresos</p>
+                            <p class="text-3xl font-bold mt-2" style="color: oklch(0.55 0.2 150);">
+                                S/ <span id="totalIngresos">@Model.CierreActual?.TotalIngresos.ToString("N2")</span>
+                            </p>
+                            <p class="text-xs mt-1" style="color: var(--muted-foreground);">
+                                <span id="cantidadPagos">@Model.CierreActual?.CantidadPagos</span> transacciones
+                            </p>
+                        </div>
+                        <div class="h-12 w-12 rounded-full flex items-center justify-center" style="background-color: oklch(0.55 0.2 150 / 0.1);">
+                            <svg class="h-6 w-6" style="color: oklch(0.55 0.2 150);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Total Egresos</p>
+                            <p class="text-3xl font-bold mt-2" style="color: var(--destructive);">
+                                S/ <span id="totalEgresos">@Model.CierreActual?.TotalEgresos.ToString("N2")</span>
+                            </p>
+                            <p class="text-xs mt-1" style="color: var(--muted-foreground);">
+                                <span id="cantidadEgresos">@Model.CierreActual?.CantidadEgresos</span> gastos
+                            </p>
+                        </div>
+                        <div class="h-12 w-12 rounded-full flex items-center justify-center" style="background-color: var(--destructive-foreground);">
+                            <svg class="h-6 w-6" style="color: var(--destructive);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Ganancia Neta</p>
+                            <p class="text-3xl font-bold mt-2" style="color: var(--primary);">
+                                S/ <span id="gananciaNeta">@Model.CierreActual?.GananciaNeta.ToString("N2")</span>
+                            </p>
+                            <p class="text-xs mt-1" style="color: var(--muted-foreground);">
+                                <span id="cuentasPendientes">@Model.CuentasPendientes</span> cuentas pendientes
+                            </p>
+                        </div>
+                        <div class="h-12 w-12 rounded-full flex items-center justify-center" style="background-color: var(--primary-foreground);">
+                            <svg class="h-6 w-6" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de dos columnas: Resumen de métodos y Detalle de pagos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Desglose por Método de Pago -->
+                <div class="card">
+                    <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                        <h3 class="text-base font-semibold" style="color: var(--foreground);">Desglose por Método de Pago</h3>
+                        <p class="text-xs mt-0.5" style="color: var(--muted-foreground);">Ingresos clasificados según forma de pago</p>
+                    </div>
+                    <div class="p-6">
+                        <div id="contenedorMetodosPago" class="space-y-3">
+                            @if (Model.IngresosPorMetodo.Any())
+                            {
+                                @foreach (var metodo in Model.IngresosPorMetodo)
+                                {
+                                    <div class="flex items-center justify-between p-3 rounded-md transition-colors hover:bg-muted/50" style="border: 1px solid var(--border);">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: var(--primary-foreground);">
+                                                <svg class="h-5 w-5" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    @if (metodo.MetodoPago.Contains("Efectivo", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                    }
+                                                    else
+                                                    {
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                                    }
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium" style="color: var(--foreground);">@metodo.MetodoPago</p>
+                                                <p class="text-xs" style="color: var(--muted-foreground);">@metodo.CantidadTransacciones transacciones</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-base font-bold" style="color: var(--foreground);">S/ @metodo.MontoTotal.ToString("N2")</p>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-8">
+                                    <svg class="mx-auto h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                    </svg>
+                                    <p class="text-sm font-medium" style="color: var(--foreground);">Sin ingresos registrados</p>
+                                    <p class="text-xs mt-1" style="color: var(--muted-foreground);">No hay transacciones en esta fecha</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalle de Pagos del Día -->
+                <div class="card">
+                    <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                        <h3 class="text-base font-semibold" style="color: var(--foreground);">Detalle de Pagos</h3>
+                        <p class="text-xs mt-0.5" style="color: var(--muted-foreground);">Transacciones individuales del día</p>
+                    </div>
+                    <div class="p-6">
+                        <div id="detallePagos" class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Se llenará por AJAX -->
+                            <div class="text-center py-8">
+                                <div class="inline-block animate-spin h-8 w-8 border-4 rounded-full" style="border-color: var(--primary); border-top-color: transparent;"></div>
+                                <p class="text-sm mt-3" style="color: var(--muted-foreground);">Cargando detalles...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Flujo Mensual -->
+        <div id="vistaFlujo" style="display: @(Model.VistaActual == "flujo" ? "block" : "none")">
+            <!-- Selector de Mes -->
+            <div class="card mb-6">
+                <div class="p-4">
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1.5" style="color: var(--foreground);">Mes</label>
+                            <select id="mesFlujo" onchange="actualizarFlujo()" 
+                                    class="px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                                    style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);">
+                                @{
+                                    var mesSeleccionado = Model.FlujoMensual != null ? Model.FlujoMensual.Mes : DateTime.Today.Month;
+                                }
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    var nombreMes = new System.Globalization.CultureInfo("es-ES").DateTimeFormat.GetMonthName(i);
+                                    nombreMes = char.ToUpper(nombreMes[0]) + nombreMes.Substring(1);
+                                    <option value="@i" selected="@(i == mesSeleccionado)">@nombreMes</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1.5" style="color: var(--foreground);">Año</label>
+                            <select id="anioFlujo" onchange="actualizarFlujo()" 
+                                    class="px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                                    style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);">
+                                @{
+                                    var anioSeleccionado = Model.FlujoMensual != null ? Model.FlujoMensual.Anio : DateTime.Today.Year;
+                                }
+                                @for (int i = DateTime.Today.Year; i >= DateTime.Today.Year - 2; i--)
+                                {
+                                    <option value="@i" selected="@(i == anioSeleccionado)">@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.FlujoMensual != null)
+            {
+                <!-- Resumen Mensual -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="card p-8">
+                        <p class="text-xs font-medium" style="color: var(--muted-foreground);">Ingresos del Mes</p>
+                        <p class="text-3xl font-bold mt-2" style="color: oklch(0.55 0.2 150);">
+                            S/ @Model.FlujoMensual.TotalIngresos.ToString("N2")
+                        </p>
+                    </div>
+
+                    <div class="card p-8">
+                        <p class="text-xs font-medium" style="color: var(--muted-foreground);">Egresos del Mes</p>
+                        <p class="text-3xl font-bold mt-2" style="color: var(--destructive);">
+                            S/ @Model.FlujoMensual.TotalEgresos.ToString("N2")
+                        </p>
+                    </div>
+
+                    <div class="card p-8">
+                        <p class="text-xs font-medium" style="color: var(--muted-foreground);">Utilidad Neta</p>
+                        <p class="text-3xl font-bold mt-2" style="color: var(--primary);">
+                            S/ @Model.FlujoMensual.UtilidadNeta.ToString("N2")
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tabla de Cierres Diarios -->
+                <div class="card mb-6">
+                    <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                        <h3 class="text-base font-semibold" style="color: var(--foreground);">Cierres Diarios - @Model.FlujoMensual.NombreMes @Model.FlujoMensual.Anio</h3>
+                        <p class="text-xs mt-0.5" style="color: var(--muted-foreground);">Detalle de movimientos del mes</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="border-b text-xs uppercase" style="border-color: var(--border); background-color: var(--muted); color: var(--muted-foreground);">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-medium">Fecha</th>
+                                    <th class="px-6 py-3 text-right font-medium">Ingresos</th>
+                                    <th class="px-6 py-3 text-right font-medium">Egresos</th>
+                                    <th class="px-6 py-3 text-right font-medium">Ganancia</th>
+                                    <th class="px-6 py-3 text-center font-medium">Pagos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.FlujoMensual.CierresDiarios.Any())
+                                {
+                                    @foreach (var cierre in Model.FlujoMensual.CierresDiarios)
+                                    {
+                                        <tr class="border-b transition-colors hover:bg-muted/50" style="border-color: var(--border);">
+                                            <td class="px-6 py-3 font-medium" style="color: var(--foreground);">
+                                                @cierre.Fecha.ToString("dd/MM/yyyy")
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-medium" style="color: oklch(0.55 0.2 150);">
+                                                S/ @cierre.TotalIngresos.ToString("N2")
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-medium" style="color: var(--destructive);">
+                                                S/ @cierre.TotalEgresos.ToString("N2")
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-bold" style="color: var(--primary);">
+                                                S/ @cierre.GananciaNeta.ToString("N2")
+                                            </td>
+                                            <td class="px-6 py-3 text-center" style="color: var(--muted-foreground);">
+                                                @cierre.CantidadPagos
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-12 text-center">
+                                            <svg class="mx-auto h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                            <p class="text-sm font-medium" style="color: var(--foreground);">Sin movimientos registrados</p>
+                                            <p class="text-xs mt-1" style="color: var(--muted-foreground);">No hay actividad financiera en este mes</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Historial -->
+<div id="historialModal" class="modal-backdrop hidden">
+    <div class="modal-content max-w-4xl">
+        <div id="historialContent"></div>
+    </div>
+</div>
+
+<!-- Modal de Apertura de Caja -->
+<div id="aperturaCajaModal" class="modal-backdrop hidden">
+    <div class="modal-content max-w-md">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold" style="color: var(--foreground);">Apertura de Caja</h3>
+                <button onclick="window.Modal.close('aperturaCajaModal')" class="text-sm" style="color: var(--muted-foreground);">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="formApertura" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--foreground);">Saldo Inicial</label>
+                    <input type="number" 
+                           id="saldoInicial" 
+                           step="0.01" 
+                           min="0"
+                           required
+                           class="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                           style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);"
+                           placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--foreground);">Observaciones (Opcional)</label>
+                    <textarea id="observacionesApertura" 
+                              rows="3"
+                              class="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                              style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);"
+                              placeholder="Notas adicionales..."></textarea>
+                </div>
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="submit"
+                            class="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border shadow-sm transition-all hover:opacity-90" 
+                            style="background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary);">
+                        Abrir Caja
+                    </button>
+                    <button type="button" 
+                            onclick="window.Modal.close('aperturaCajaModal')"
+                            class="flex-1 px-4 py-2 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                            style="border-color: var(--border); color: var(--foreground);">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cierre de Caja -->
+<div id="cierreCajaModal" class="modal-backdrop hidden">
+    <div class="modal-content max-w-lg">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold" style="color: var(--foreground);">Cierre de Caja</h3>
+                <button onclick="window.Modal.close('cierreCajaModal')" class="text-sm" style="color: var(--muted-foreground);">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="cierreResumen" class="space-y-4 mb-6">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <form id="formCierre" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--foreground);">Efectivo Real Contado</label>
+                    <input type="number" 
+                           id="efectivoReal" 
+                           step="0.01" 
+                           min="0"
+                           required
+                           class="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 transition-all" 
+                           style="border-color: var(--border); background-color: var(--background); color: var(--foreground); --tw-ring-color: var(--primary);"
+                           placeholder="0.00">
+                </div>
+                <div class="flex items-center gap-3 pt-4">
+                    <button type="submit"
+                            class="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md border shadow-sm transition-all hover:opacity-90" 
+                            style="background-color: var(--destructive); color: white; border-color: var(--destructive);">
+                        Cerrar Caja
+                    </button>
+                    <button type="button" 
+                            onclick="window.Modal.close('cierreCajaModal')"
+                            class="flex-1 px-4 py-2 text-sm font-medium rounded-md border transition-all hover:bg-muted/50" 
+                            style="border-color: var(--border); color: var(--foreground);">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalle del Cliente -->
+<div id="detalleClienteModal" class="modal-backdrop hidden">
+    <div class="modal-content max-w-4xl">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold" style="color: var(--foreground);">Detalle del Cliente</h3>
+                <button onclick="window.Modal.close('detalleClienteModal')" class="text-sm" style="color: var(--muted-foreground);">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="contenidoDetalle">
+                <!-- Se llenará dinámicamente -->
+                <div class="text-center py-8">
+                    <div class="inline-block animate-spin h-8 w-8 border-4 rounded-full" style="border-color: var(--primary); border-top-color: transparent;"></div>
+                    <p class="text-sm mt-3" style="color: var(--muted-foreground);">Cargando información...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function cambiarVista(vista) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('vista', vista);
+        window.location.href = `?${urlParams.toString()}`;
+    }
+
+    function seleccionarHoy() {
+        document.getElementById('fechaCierre').value = new Date().toISOString().split('T')[0];
+        actualizarCierre();
+    }
+
+    async function actualizarCierre() {
+        const fecha = document.getElementById('fechaCierre').value;
+        if (!fecha) return;
+
+        try {
+            const response = await fetch(`?handler=CalcularCierre&fecha=${fecha}`);
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('totalIngresos').textContent = data.cierre.totalIngresos.toFixed(2);
+                document.getElementById('totalEgresos').textContent = data.cierre.totalEgresos.toFixed(2);
+                document.getElementById('gananciaNeta').textContent = data.cierre.gananciaNeta.toFixed(2);
+                document.getElementById('cantidadPagos').textContent = data.cierre.cantidadPagos;
+                document.getElementById('cantidadEgresos').textContent = data.cierre.cantidadEgresos;
+
+                actualizarMetodosPago(data.cierre.ingresosPorMetodo);
+                await cargarDetallePagos(fecha);
+            }
+        } catch (error) {
+            console.error('Error al actualizar cierre:', error);
+        }
+    }
+
+    async function cargarDetallePagos(fecha) {
+        const contenedor = document.getElementById('detallePagos');
+        
+        try {
+            const response = await fetch(`?handler=DetallePagos&fecha=${fecha}`);
+            const data = await response.json();
+
+            if (data.success && data.pagos && data.pagos.length > 0) {
+                let html = '';
+                data.pagos.forEach(pago => {
+                    html += `
+                        <div class="flex items-center justify-between p-3 rounded-md transition-colors hover:bg-muted/50" style="border: 1px solid var(--border);">
+                            <div class="flex items-center gap-3 flex-1">
+                                <div class="flex-shrink-0">
+                                    <p class="text-xs font-medium" style="color: var(--primary);">${pago.hora}</p>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate" style="color: var(--foreground);">${pago.cliente}</p>
+                                    <p class="text-xs truncate" style="color: var(--muted-foreground);">${pago.metodoPago} • ${pago.comprobante}</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-sm font-bold" style="color: oklch(0.55 0.2 150);">S/ ${pago.monto.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                contenedor.innerHTML = html;
+            } else {
+                contenedor.innerHTML = `
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-sm font-medium" style="color: var(--foreground);">Sin pagos registrados</p>
+                        <p class="text-xs mt-1" style="color: var(--muted-foreground);">No hay transacciones en esta fecha</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error al cargar detalle de pagos:', error);
+            contenedor.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-sm text-destructive">Error al cargar detalles</p>
+                </div>
+            `;
+        }
+    }
+
+    function actualizarMetodosPago(metodos) {
+        const contenedor = document.getElementById('contenedorMetodosPago');
+        
+        if (!metodos || metodos.length === 0) {
+            contenedor.innerHTML = `
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 mb-3" style="color: var(--muted-foreground);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                    </svg>
+                    <p class="text-sm font-medium" style="color: var(--foreground);">Sin ingresos registrados</p>
+                    <p class="text-xs mt-1" style="color: var(--muted-foreground);">No hay transacciones en esta fecha</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        metodos.forEach(metodo => {
+            const iconPath = metodo.metodoPago.toLowerCase().includes('efectivo') 
+                ? 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'
+                : 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z';
+
+            html += `
+                <div class="flex items-center justify-between p-3 rounded-md transition-colors hover:bg-muted/50" style="border: 1px solid var(--border);">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-full flex items-center justify-center" style="background-color: var(--primary-foreground);">
+                            <svg class="h-5 w-5" style="color: var(--primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium" style="color: var(--foreground);">${metodo.metodoPago}</p>
+                            <p class="text-xs" style="color: var(--muted-foreground);">${metodo.cantidadTransacciones} transacciones</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-base font-bold" style="color: var(--foreground);">S/ ${metodo.montoTotal.toFixed(2)}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+    }
+
+    function actualizarFlujo() {
+        const mes = document.getElementById('mesFlujo').value;
+        const anio = document.getElementById('anioFlujo').value;
+        window.location.href = `?vista=flujo&mes=${mes}&anio=${anio}`;
+    }
+
+    async function mostrarHistorial() {
+        const modal = document.getElementById('historialModal');
+        const content = document.getElementById('historialContent');
+
+        const hoy = new Date();
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+        const fechaInicio = hace30Dias.toISOString().split('T')[0];
+        const fechaFin = hoy.toISOString().split('T')[0];
+
+        try {
+            const response = await fetch(`?handler=Historial&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+            const data = await response.json();
+
+            if (data.success) {
+                let html = `
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold" style="color: var(--foreground);">Historial de Cierres - Últimos 30 días</h3>
+                            <button onclick="window.Modal.close('historialModal')" class="text-sm" style="color: var(--muted-foreground);">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="border-b text-xs uppercase" style="border-color: var(--border); background-color: var(--muted); color: var(--muted-foreground);">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-medium">Fecha</th>
+                                        <th class="px-4 py-3 text-right font-medium">Ingresos</th>
+                                        <th class="px-4 py-3 text-right font-medium">Egresos</th>
+                                        <th class="px-4 py-3 text-right font-medium">Ganancia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                data.cierres.forEach(cierre => {
+                    html += `
+                        <tr class="border-b transition-colors hover:bg-muted/50" style="border-color: var(--border);">
+                            <td class="px-4 py-3 font-medium" style="color: var(--foreground);">${cierre.fecha}</td>
+                            <td class="px-4 py-3 text-right font-medium" style="color: oklch(0.55 0.2 150);">S/ ${cierre.totalIngresos.toFixed(2)}</td>
+                            <td class="px-4 py-3 text-right font-medium" style="color: var(--destructive);">S/ ${cierre.totalEgresos.toFixed(2)}</td>
+                            <td class="px-4 py-3 text-right font-bold" style="color: var(--primary);">S/ ${cierre.gananciaNeta.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                content.innerHTML = html;
+                window.Modal.open('historialModal');
+            }
+        } catch (error) {
+            console.error('Error al cargar historial:', error);
+        }
+    }
+
+    // Apertura de caja
+    function mostrarAperturaCaja() {
+        document.getElementById('saldoInicial').value = '';
+        document.getElementById('observacionesApertura').value = '';
+        window.Modal.open('aperturaCajaModal');
+    }
+
+    document.getElementById('formApertura').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const saldoInicial = parseFloat(document.getElementById('saldoInicial').value);
+        const observaciones = document.getElementById('observacionesApertura').value;
+
+        try {
+            const response = await fetch('?handler=AbrirCaja', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    saldoInicial: saldoInicial,
+                    observaciones: observaciones
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.Modal.close('aperturaCajaModal');
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error al abrir caja:', error);
+            alert('Error al abrir la caja');
+        }
+    });
+
+    // Cierre de caja
+    async function mostrarCierreCaja() {
+        const fecha = new Date().toISOString().split('T')[0];
+        
+        try {
+            const response = await fetch(`?handler=CalcularCierre&fecha=${fecha}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const saldoInicial = @Model.SaldoInicial;
+                const saldoEsperado = saldoInicial + data.cierre.totalIngresos - data.cierre.totalEgresos;
+
+                document.getElementById('cierreResumen').innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3 rounded-md" style="background-color: var(--muted);">
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Saldo Inicial</p>
+                            <p class="text-lg font-bold mt-1" style="color: var(--foreground);">S/ ${saldoInicial.toFixed(2)}</p>
+                        </div>
+                        <div class="p-3 rounded-md" style="background-color: oklch(0.9 0.15 150);">
+                            <p class="text-xs font-medium" style="color: oklch(0.4 0.2 150);">Ingresos</p>
+                            <p class="text-lg font-bold mt-1" style="color: oklch(0.55 0.2 150);">S/ ${data.cierre.totalIngresos.toFixed(2)}</p>
+                        </div>
+                        <div class="p-3 rounded-md" style="background-color: oklch(0.95 0.1 0);">
+                            <p class="text-xs font-medium" style="color: oklch(0.5 0.2 0);">Egresos</p>
+                            <p class="text-lg font-bold mt-1" style="color: var(--destructive);">S/ ${data.cierre.totalEgresos.toFixed(2)}</p>
+                        </div>
+                        <div class="p-3 rounded-md" style="background-color: oklch(0.9 0.15 293);">
+                            <p class="text-xs font-medium" style="color: oklch(0.4 0.2 293);">Saldo Esperado</p>
+                            <p class="text-lg font-bold mt-1" style="color: var(--primary);">S/ ${saldoEsperado.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('efectivoReal').value = saldoEsperado.toFixed(2);
+                window.Modal.open('cierreCajaModal');
+            }
+        } catch (error) {
+            console.error('Error al cargar datos de cierre:', error);
+            alert('Error al cargar datos de cierre');
+        }
+    }
+
+    document.getElementById('formCierre').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const efectivoReal = parseFloat(document.getElementById('efectivoReal').value);
+
+        if (!confirm('¿Está seguro de cerrar la caja? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('?handler=CerrarCaja', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    efectivoReal: efectivoReal
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.Modal.close('cierreCajaModal');
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error al cerrar caja:', error);
+            alert('Error al cerrar la caja');
+        }
+    });
+
+    // Búsqueda de clientes
+    let searchTimeout;
+    async function buscarClientes(termino) {
+        const contenedor = document.getElementById('resultadosBusqueda');
+        
+        if (!termino || termino.length < 2) {
+            contenedor.classList.add('hidden');
+            return;
+        }
+
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`?handler=BuscarClientes&termino=${encodeURIComponent(termino)}`);
+                const data = await response.json();
+
+                if (data.success && data.clientes.length > 0) {
+                    let html = '';
+                    data.clientes.forEach(cliente => {
+                        const tieneSaldoAFavor = cliente.saldoPendiente < 0;
+                        const saldoPendiente = Math.abs(cliente.saldoPendiente);
+                        const saldoColor = tieneSaldoAFavor ? 'oklch(0.55 0.2 150)' : 'var(--destructive)';
+                        const saldoLabel = tieneSaldoAFavor ? 'A Favor' : 'Debe';
+                        
+                        html += `
+                            <div onclick="verDetalleCliente(${cliente.idCliente})" 
+                                 class="flex items-center justify-between p-3 cursor-pointer transition-colors hover:bg-muted/50" 
+                                 style="border-bottom: 1px solid var(--border);">
+                                <div>
+                                    <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.nombre}</p>
+                                    <p class="text-xs" style="color: var(--muted-foreground);">DNI: ${cliente.dni} ${cliente.telefono ? '• Tel: ' + cliente.telefono : ''}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs" style="color: var(--muted-foreground);">${saldoLabel}</p>
+                                    <p class="text-sm font-bold" style="color: ${saldoColor};">S/ ${saldoPendiente.toFixed(2)}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    contenedor.querySelector('div').innerHTML = html;
+                    contenedor.classList.remove('hidden');
+                } else {
+                    contenedor.innerHTML = `
+                        <div class="border rounded-md p-4 text-center" style="border-color: var(--border);">
+                            <p class="text-sm" style="color: var(--muted-foreground);">No se encontraron clientes</p>
+                        </div>
+                    `;
+                    contenedor.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error al buscar clientes:', error);
+            }
+        }, 300);
+    }
+
+    // Ver detalle del cliente
+    async function verDetalleCliente(idCliente) {
+        const contenedor = document.getElementById('contenidoDetalle');
+        contenedor.innerHTML = `
+            <div class="text-center py-8">
+                <div class="inline-block animate-spin h-8 w-8 border-4 rounded-full" style="border-color: var(--primary); border-top-color: transparent;"></div>
+                <p class="text-sm mt-3" style="color: var(--muted-foreground);">Cargando información...</p>
+            </div>
+        `;
+
+        window.Modal.open('detalleClienteModal');
+
+        // Ocultar resultados de búsqueda
+        document.getElementById('resultadosBusqueda').classList.add('hidden');
+        document.getElementById('buscarCliente').value = '';
+
+        try {
+            const response = await fetch(`?handler=DetalleCliente&idCliente=${idCliente}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const cliente = data.cliente;
+                const saldoPendiente = Math.abs(cliente.saldoPendiente);
+                const tieneSaldoAFavor = cliente.saldoPendiente < 0;
+                const saldoColor = tieneSaldoAFavor ? 'oklch(0.55 0.2 150)' : 'var(--destructive)';
+                const saldoLabel = tieneSaldoAFavor ? 'Saldo a Favor' : 'Saldo Pendiente';
+
+                let html = `
+                    <!-- Información del Cliente -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="card p-4">
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Total Consumos</p>
+                            <p class="text-2xl font-bold mt-1" style="color: var(--foreground);">S/ ${cliente.totalConsumos.toFixed(2)}</p>
+                        </div>
+                        <div class="card p-4">
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">Total Pagado</p>
+                            <p class="text-2xl font-bold mt-1" style="color: oklch(0.55 0.2 150);">S/ ${cliente.totalPagado.toFixed(2)}</p>
+                        </div>
+                        <div class="card p-4">
+                            <p class="text-xs font-medium" style="color: var(--muted-foreground);">${saldoLabel}</p>
+                            <p class="text-2xl font-bold mt-1" style="color: ${saldoColor};">S/ ${saldoPendiente.toFixed(2)}</p>
+                            ${tieneSaldoAFavor ? '<p class="text-xs mt-1" style="color: oklch(0.55 0.2 150);">Cliente tiene crédito</p>' : ''}
+                        </div>
+                    </div>
+
+                    <!-- Información Personal -->
+                    <div class="card p-6 mb-6">
+                        <h4 class="text-sm font-semibold mb-4" style="color: var(--foreground);">Información Personal</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Nombre</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.nombre}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">DNI</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.dni}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Teléfono</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.telefono || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Email</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Cantidad de Visitas</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.cantidadVisitas}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs" style="color: var(--muted-foreground);">Última Visita</p>
+                                <p class="text-sm font-medium" style="color: var(--foreground);">${cliente.ultimaVisita || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historial de Pagos y Consumos -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Historial de Pagos -->
+                        <div class="card">
+                            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                                <h4 class="text-sm font-semibold" style="color: var(--foreground);">Últimos Pagos</h4>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-2 max-h-60 overflow-y-auto">
+                `;
+
+                if (cliente.historialPagos && cliente.historialPagos.length > 0) {
+                    cliente.historialPagos.forEach(pago => {
+                        html += `
+                            <div class="flex items-center justify-between p-2 rounded" style="background-color: var(--muted);">
+                                <div>
+                                    <p class="text-xs font-medium" style="color: var(--foreground);">${pago.fecha}</p>
+                                    <p class="text-xs" style="color: var(--muted-foreground);">${pago.metodoPago}${pago.numeroReferencia ? ' • Ref: ' + pago.numeroReferencia : ''}</p>
+                                </div>
+                                <p class="text-sm font-bold" style="color: oklch(0.55 0.2 150);">S/ ${pago.monto.toFixed(2)}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p class="text-sm text-center py-4" style="color: var(--muted-foreground);">Sin pagos registrados</p>`;
+                }
+
+                html += `
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Últimos Consumos -->
+                        <div class="card">
+                            <div class="border-b px-6 py-4" style="border-color: var(--border);">
+                                <h4 class="text-sm font-semibold" style="color: var(--foreground);">Últimos Consumos</h4>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-2 max-h-60 overflow-y-auto">
+                `;
+
+                if (cliente.ultimosConsumos && cliente.ultimosConsumos.length > 0) {
+                    cliente.ultimosConsumos.forEach(consumo => {
+                        html += `
+                            <div class="flex items-center justify-between p-2 rounded" style="background-color: var(--muted);">
+                                <div>
+                                    <p class="text-xs font-medium" style="color: var(--foreground);">${consumo.servicio}</p>
+                                    <p class="text-xs" style="color: var(--muted-foreground);">${consumo.fecha}</p>
+                                </div>
+                                <p class="text-sm font-bold" style="color: var(--foreground);">S/ ${consumo.monto.toFixed(2)}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p class="text-sm text-center py-4" style="color: var(--muted-foreground);">Sin consumos registrados</p>`;
+                }
+
+                html += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                contenedor.innerHTML = html;
+            } else {
+                contenedor.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-sm" style="color: var(--destructive);">${data.message || 'Error al cargar el detalle'}</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error al obtener detalle del cliente:', error);
+            contenedor.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-sm" style="color: var(--destructive);">Error al cargar la información</p>
+                </div>
+            `;
+        }
+    }
+
+    // Cargar detalle de pagos al cargar la página (solo en vista de caja)
+    document.addEventListener('DOMContentLoaded', function() {
+        const vistaActual = '@Model.VistaActual';
+        if (vistaActual === 'caja') {
+            const fechaInput = document.getElementById('fechaCierre');
+            if (fechaInput && fechaInput.value) {
+                cargarDetallePagos(fechaInput.value);
+            }
+        }
+
+        // Cerrar resultados de búsqueda al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const busqueda = document.getElementById('buscarCliente');
+            const resultados = document.getElementById('resultadosBusqueda');
+            if (!busqueda.contains(e.target) && !resultados.contains(e.target)) {
+                resultados.classList.add('hidden');
+            }
+        });
+    });
+</script>
